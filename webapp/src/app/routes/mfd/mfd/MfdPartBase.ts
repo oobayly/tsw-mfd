@@ -1,7 +1,7 @@
-import { Rectangle, Size } from "./interfaces";
+import { Alignment, Rectangle, Size } from "./interfaces";
 
-export abstract class MfdPartBase<TOptions, TRenderOptions>  {
-  protected abstract readonly partBounds: Rectangle;
+export abstract class MfdPartBase<TOptions, TRenderOptions> {
+  protected abstract readonly partBounds: Readonly<Rectangle>;
 
   constructor(
     protected readonly options: Readonly<TOptions>,
@@ -24,16 +24,13 @@ export abstract class MfdPartBase<TOptions, TRenderOptions>  {
   // Methods
   // ========================
 
-  public render(ctx: CanvasRenderingContext2D, value: TRenderOptions): void {
+  public renderAll(ctx: CanvasRenderingContext2D, value: TRenderOptions): void {
     this.renderDynamic(ctx, value);
     this.renderStatic(ctx)
   }
 
-  /**
-   * Scales and transforms the specified context.
-   * @summary Ensure to restore the context after this has been called.
-   */
-  protected scaleAndTransform(ctx: CanvasRenderingContext2D, origin: "top-left" | "centre"): void {
+  /** Scales and transforms the specified context. */
+  protected scaleAndTransform(ctx: CanvasRenderingContext2D, cb: (ctx: CanvasRenderingContext2D) => void, origin: Alignment = Alignment.Centre): void {
     const scale = this.getScale();
     const { width, height } = this.getSize();
 
@@ -41,11 +38,28 @@ export abstract class MfdPartBase<TOptions, TRenderOptions>  {
     ctx.translate(this.bounds.x + this.bounds.width / 2, this.bounds.y + this.bounds.height / 2);
     ctx.scale(scale, scale);
 
-    switch (origin) {
-      case "centre":
-        // ctx.translate(-width / 2, -height / 2);
-        break;
+    if (origin) {
+      let dx = 0;
+      let dy = 0;
+
+      if (origin & Alignment.Left) {
+        dx = -width / 2;
+      } else if (origin & Alignment.Right) {
+        dx = width / 2;
+      }
+      if (origin & Alignment.Top) {
+        dy = -height / 2;
+      } else if (origin & Alignment.Bottom) {
+        dy = height / 2;
+      }
+
+      ctx.translate(dx, dy);
     }
 
+    // This does the drawing
+    cb(ctx);
+
+    // Endure the transform is reset
+    ctx.restore();
   }
 }
