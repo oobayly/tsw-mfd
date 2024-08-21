@@ -70,18 +70,18 @@ export class Br406Component extends MfdBaseComponent {
   constructor() {
     super();
 
-    this.subscriptions.push(interval(5).subscribe(() => {
-      Object.values(this.values).forEach((x) => {
-        x.value += x.delta;
-        if (x.value < x.min) {
-          x.value = x.min;
-          x.delta *= -1;
-        } else if (x.value > x.max) {
-          x.value = x.max;
-          x.delta *= -1;
-        }
-      });
-    }));
+    // this.subscriptions.push(interval(5).subscribe(() => {
+    //   Object.values(this.values).forEach((x) => {
+    //     x.value += x.delta;
+    //     if (x.value < x.min) {
+    //       x.value = x.min;
+    //       x.delta *= -1;
+    //     } else if (x.value > x.max) {
+    //       x.value = x.max;
+    //       x.delta *= -1;
+    //     }
+    //   });
+    // }));
   }
 
   protected override onDestroy(): void {
