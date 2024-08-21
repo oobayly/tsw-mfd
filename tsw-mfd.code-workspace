@@ -1,0 +1,33 @@
+{
+  "folders": [
+    {
+      "path": "firebase"
+    },
+    {
+      "path": "webapp"
+    },
+    {
+      "path": ".github"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.angular/cache": true
+    },
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "html.format.endWithNewline": true,
+    "typescript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+    "typescript.preferences.quoteStyle": "double",
+    "eslint.run": "onType",
+    "[typescript]": {
+      "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+      }
+    },
+  }
+}
