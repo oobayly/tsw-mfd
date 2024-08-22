@@ -1,6 +1,5 @@
 import { CommonModule } from "@angular/common";
 import { Component } from '@angular/core';
-import { Title } from "@angular/platform-browser";
 import { RouterModule } from "@angular/router";
 import { Observable, of } from "rxjs";
 

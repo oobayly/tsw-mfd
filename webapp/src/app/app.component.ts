@@ -2,6 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule, RouterOutlet, UrlTree } from '@angular/router';
 import { filter, map, Observable, of, startWith } from "rxjs";
+import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,7 @@ import { filter, map, Observable, of, startWith } from "rxjs";
   imports: [
     CommonModule, RouterModule
   ],
+  providers: [MfdControlsService],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
@@ -36,6 +38,7 @@ export class AppComponent {
   // ========================
 
   constructor(
+    public readonly mfdControls: MfdControlsService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
   ) {
@@ -51,9 +54,8 @@ export class AppComponent {
   // ========================
 
   public getLastMdfObservable(): Observable<string[]> {
-    return this.router.events.pipe(
-      filter((e) => e instanceof NavigationEnd),
-      startWith(undefined),
+    return this.mfdControls.mfd$.pipe(
+      filter((x) => !!x),
       map(() => {
         const path: string[] = [];
 

@@ -1,6 +1,7 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, Signal } from '@angular/core';
+import { AfterViewInit, Component, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { Subscription } from "rxjs";
 import { Rectangle, Size } from "../../mfd/interfaces";
+import { MfdControlsService, MfdOptions } from "../../../../core/services/mfd-controls.service";
 
 @Component({
   selector: 'app-mfd-base',
@@ -9,13 +10,18 @@ import { Rectangle, Size } from "../../mfd/interfaces";
   template: "",
 })
 export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnInit {
+  private readonly mfdService = inject(MfdControlsService);
+
+  protected abstract mfdName: string;
+
   protected abstract size: Size;
 
   private animationFrameId?: number;
 
   protected readonly subscriptions: Subscription[] = [];
 
-  constructor() {
+  constructor(
+  ) {
     window.addEventListener("resize", this.onResize);
   }
 
@@ -23,6 +29,19 @@ export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnIn
     this.afterViewInit?.();
     this.onResize();
     this.nextFrame();
+
+    window.setTimeout(() => {
+      this.mfdService.mfd$.next({
+        name: this.mfdName,
+        hasSelfTest: !!this.selfTest,
+      });
+    });
+
+    this.subscriptions.push(this.mfdService.selfTest$.subscribe(() => {
+      if (this.selfTest) {
+        this.selfTest();
+      }
+    }));
   }
 
   ngOnDestroy(): void {
@@ -35,6 +54,8 @@ export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnIn
     while (this.subscriptions.length) {
       this.subscriptions.pop()?.unsubscribe();
     }
+
+    this.mfdService.mfd$.next(undefined);
 
     this.onDestroy?.();
   }
@@ -52,6 +73,8 @@ export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnIn
   protected onDestroy?(): void;
 
   protected onInit?(): void;
+
+  protected selfTest?(): void;
 
   // ========================
   // Methods

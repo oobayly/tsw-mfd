@@ -4,9 +4,9 @@ import { DbSemiDigitalDial } from "../../mfd/Db/DbSemiDigitalDial";
 import { Size } from "../../mfd/interfaces";
 import { radians } from "../../../../core/helpers";
 import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
-import { interval, timer } from "rxjs";
 import { DbLampPanel } from "../../mfd/Db/DbLampPanel";
 import { DbLampNames } from "../../mfd/Db/DbLamps";
+import { delay, interval, takeUntil, timeout, timer } from "rxjs";
 
 @Component({
   selector: 'app-br406',
@@ -16,7 +16,8 @@ import { DbLampNames } from "../../mfd/Db/DbLamps";
   styleUrls: ["../mfd-base/mfd-base.component.scss", './br406.component.scss']
 })
 export class Br406Component extends MfdBaseComponent {
-  protected override size: Size = { width: 699, height: 376 };
+  protected override readonly mfdName = "DB BR 406";
+  protected override readonly size: Size = { width: 699, height: 376 };
 
   private readonly parts = {
     power: new DbSemiDigitalDial(
@@ -65,13 +66,13 @@ export class Br406Component extends MfdBaseComponent {
   };
 
   private readonly values = {
-    power: { value: 0, delta: .25, min: -100, max: 100 },
-    powerTarget: { value: 20, delta: .25, min: -100, max: 100 },
-    distance: { value: 9999, delta: 25, min: 0, max: 9999 },
-    speed: { value: 0, delta: .5, min: 0, max: 350 },
-    speedTarget: { value: 40, delta: .5, min: 0, max: 350 },
+    power: { value: <number | undefined>0, delta: .25, min: -100, max: 100 },
+    powerTarget: { value: <number | undefined>20, delta: .25, min: -100, max: 100 },
+    distance: { value: <number | undefined>9999, delta: 25, min: 0, max: 9999 },
+    speed: { value: <number | undefined>0, delta: .5, min: 0, max: 350 },
+    speedTarget: { value: <number | undefined>40, delta: .5, min: 0, max: 350 },
     lamps: { value: <DbLampNames | undefined>undefined },
-  }; // satisfies Record<string, { value: number, delta: number, min: number, max: number }>;
+  } satisfies Record<string, { value: number, delta: number, min: number, max: number } | { value: DbLampNames | undefined }>;
 
   @ViewChild("container")
   private container?: ElementRef<HTMLElement>;
@@ -84,42 +85,6 @@ export class Br406Component extends MfdBaseComponent {
 
   constructor() {
     super();
-
-    // this.subscriptions.push(interval(5).subscribe(() => {
-    //   Object.values(this.values).forEach((x) => {
-    //     if (typeof x.value === "number") {
-    //       x.value += x.delta;
-    //       if (x.value < x.min) {
-    //         x.value = x.min;
-    //         x.delta *= -1;
-    //       } else if (x.value > x.max) {
-    //         x.value = x.max;
-    //         x.delta *= -1;
-    //       }
-    //     }
-    //   });
-    // }));
-
-    // this.subscriptions.push(interval(1000).subscribe(() => {
-    //   Object.values(this.values).forEach((x) => {
-    //     if (typeof x.value === "number") {
-    //     } else {
-    //       const allNames = this.parts.lamps.options.lamps
-    //         .reduce((accum, names) => {
-    //           return [...accum, ...names];
-    //         }, <DbLampNames[]>[])
-    //         .filter((name): name is DbLampNames => name !== "blank")
-    //         ;
-    //       let index = (x.value ? allNames.indexOf(x.value) : -1) + 1;
-
-    //       if (index >= allNames.length) {
-    //         index = 0;
-    //       }
-
-    //       x.value = allNames[index];
-    //     }
-    //   });
-    // }));
   }
 
   protected override onDestroy(): void {
@@ -153,5 +118,71 @@ export class Br406Component extends MfdBaseComponent {
     this.renderOnCanvas(this.static.nativeElement, (ctx) => {
       Object.values(this.parts).forEach((p) => p.renderStatic(ctx));
     });
+  }
+
+  protected override selfTest(): void {
+    const runUntil$ = timer(15000);
+
+    this.subscriptions.push(interval(5).pipe(takeUntil(runUntil$)).subscribe({
+      next: () => {
+        Object.values(this.values).forEach((x) => {
+          if (typeof x.value === "number") {
+            x.value += x.delta;
+            if (x.value < x.min) {
+              x.value = x.min;
+              x.delta *= -1;
+            } else if (x.value > x.max) {
+              x.value = x.max;
+              x.delta *= -1;
+            }
+          }
+        });
+      },
+      complete: () => {
+        Object.values(this.values).forEach((x) => {
+          if (typeof x.value === "number") {
+            x.value = undefined;
+          }
+        });
+      }
+    }));
+
+    this.subscriptions.push(interval(5).pipe(takeUntil(runUntil$)).subscribe(() => {
+      Object.values(this.values).forEach((x) => {
+        if (typeof x.value === "number") {
+          x.value += x.delta;
+          if (x.value < x.min) {
+            x.value = x.min;
+            x.delta *= -1;
+          } else if (x.value > x.max) {
+            x.value = x.max;
+            x.delta *= -1;
+          }
+        }
+      });
+    }));
+
+    this.subscriptions.push(interval(250).pipe(takeUntil(runUntil$)).subscribe({
+      next: () => {
+        const allNames = this.parts.lamps.options.lamps
+          .reduce((accum, names) => {
+            return [...accum, ...names];
+          }, <DbLampNames[]>[])
+          .filter((name): name is DbLampNames => name !== "blank")
+          ;
+
+        const { value } = this.values.lamps;
+        let index = (value ? allNames.indexOf(value) : -1) + 1;
+
+        if (index >= allNames.length) {
+          index = 0;
+        }
+
+        this.values.lamps.value = allNames[index];
+      },
+      complete: () => {
+        this.values.lamps.value = undefined;
+      }
+    }));
   }
 }
