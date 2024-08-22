@@ -6,7 +6,18 @@ import { radians } from "../../../../core/helpers";
 import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
 import { DbLampPanel } from "../../mfd/Db/DbLampPanel";
 import { DbLampNames } from "../../mfd/Db/DbLamps";
-import { delay, interval, takeUntil, timeout, timer } from "rxjs";
+import { timer } from "rxjs";
+import { runSelfTestOverRange } from "../../mfd/self-test";
+
+interface MfdValues {
+  distance?: number;
+  lamps: DbLampNames[]
+  power: number;
+  powerTarget?: number;
+  speed: number;
+  speedTarget?: number;
+  speedLimit?: number;
+}
 
 @Component({
   selector: 'app-br406',
@@ -65,14 +76,20 @@ export class Br406Component extends MfdBaseComponent {
     ),
   };
 
-  private readonly values = {
-    power: { value: <number | undefined>0, delta: .25, min: -100, max: 100 },
-    powerTarget: { value: <number | undefined>20, delta: .25, min: -100, max: 100 },
-    distance: { value: <number | undefined>9999, delta: 25, min: 0, max: 9999 },
-    speed: { value: <number | undefined>0, delta: .5, min: 0, max: 350 },
-    speedTarget: { value: <number | undefined>40, delta: .5, min: 0, max: 350 },
-    lamps: { value: <DbLampNames | undefined>undefined },
-  } satisfies Record<string, { value: number, delta: number, min: number, max: number } | { value: DbLampNames | undefined }>;
+  private readonly values: MfdValues = {
+    power: 0,
+    speed: 0,
+    lamps: [],
+  };
+
+  // private readonly values = {
+  //   power: { value: <number | undefined>0, delta: .25, min: -100, max: 100 },
+  //   powerTarget: { value: <number | undefined>20, delta: .25, min: -100, max: 100 },
+  //   distance: { value: <number | undefined>9999, delta: 25, min: 0, max: 9999 },
+  //   speed: { value: <number | undefined>0, delta: .5, min: 0, max: 350 },
+  //   speedTarget: { value: <number | undefined>40, delta: .5, min: 0, max: 350 },
+  //   lamps: { value: <DbLampNames | undefined>undefined },
+  // } satisfies Record<string, { value: number, delta: number, min: number, max: number } | { value: DbLampNames | undefined }>;
 
   @ViewChild("container")
   private container?: ElementRef<HTMLElement>;
@@ -96,10 +113,10 @@ export class Br406Component extends MfdBaseComponent {
     }
 
     this.renderOnCanvas(this.dynamic.nativeElement, (ctx) => {
-      this.parts.power.renderDynamic(ctx, { value: this.values.power.value, target: this.values.powerTarget.value });
-      this.parts.speed.renderDynamic(ctx, { value: this.values.speed.value, limit: 0, target: this.values.speedTarget.value });
-      this.parts.lzb.renderDynamic(ctx, this.values.distance.value);
-      this.parts.lamps.renderDynamic(ctx, this.values.lamps.value ? [this.values.lamps.value] : []);
+      this.parts.power.renderDynamic(ctx, { value: this.values.power, target: this.values.powerTarget });
+      this.parts.speed.renderDynamic(ctx, { value: this.values.speed, limit: this.values.speedLimit, target: this.values.speedTarget });
+      this.parts.lzb.renderDynamic(ctx, this.values.distance);
+      this.parts.lamps.renderDynamic(ctx, this.values.lamps);
     });
   }
 
@@ -121,68 +138,43 @@ export class Br406Component extends MfdBaseComponent {
   }
 
   protected override selfTest(): void {
-    const runUntil$ = timer(15000);
+    // Power
+    this.subscriptions.push(this.parts.power.runSelfTest(
+      25, 1,
+      (v) => this.values.power = v,
+      () => this.values.power = 0,
+    ));
+    this.subscriptions.push(this.parts.power.runSelfTest(
+      25, 1.5,
+      (v) => this.values.powerTarget = v,
+      () => this.values.powerTarget = undefined,
+    ));
 
-    this.subscriptions.push(interval(5).pipe(takeUntil(runUntil$)).subscribe({
-      next: () => {
-        Object.values(this.values).forEach((x) => {
-          if (typeof x.value === "number") {
-            x.value += x.delta;
-            if (x.value < x.min) {
-              x.value = x.min;
-              x.delta *= -1;
-            } else if (x.value > x.max) {
-              x.value = x.max;
-              x.delta *= -1;
-            }
-          }
-        });
-      },
-      complete: () => {
-        Object.values(this.values).forEach((x) => {
-          if (typeof x.value === "number") {
-            x.value = undefined;
-          }
-        });
-      }
-    }));
 
-    this.subscriptions.push(interval(5).pipe(takeUntil(runUntil$)).subscribe(() => {
-      Object.values(this.values).forEach((x) => {
-        if (typeof x.value === "number") {
-          x.value += x.delta;
-          if (x.value < x.min) {
-            x.value = x.min;
-            x.delta *= -1;
-          } else if (x.value > x.max) {
-            x.value = x.max;
-            x.delta *= -1;
-          }
-        }
-      });
-    }));
+    // Speed
+    this.subscriptions.push(this.parts.speed.runSelfTest(
+      25, 2,
+      (v) => this.values.speed = v,
+      () => this.values.speed = 0,
+    ));
+    this.subscriptions.push(this.parts.speed.runSelfTest(
+      25, 3,
+      (v) => this.values.speedTarget = v,
+      () => this.values.speedTarget = undefined,
+    ));
 
-    this.subscriptions.push(interval(250).pipe(takeUntil(runUntil$)).subscribe({
-      next: () => {
-        const allNames = this.parts.lamps.options.lamps
-          .reduce((accum, names) => {
-            return [...accum, ...names];
-          }, <DbLampNames[]>[])
-          .filter((name): name is DbLampNames => name !== "blank")
-          ;
+    // LZB
+    this.subscriptions.push(this.parts.lzb.runSelfTest(
+      50,
+      (v) => this.values.distance = v,
+      () => this.values.distance = undefined,
+    ));
 
-        const { value } = this.values.lamps;
-        let index = (value ? allNames.indexOf(value) : -1) + 1;
-
-        if (index >= allNames.length) {
-          index = 0;
-        }
-
-        this.values.lamps.value = allNames[index];
-      },
-      complete: () => {
-        this.values.lamps.value = undefined;
-      }
-    }));
+    // Lamps
+    this.subscriptions.push(this.parts.lamps.runSelfTest(
+      10000,
+      (v) => this.values.lamps = v,
+      () => this.values.lamps = [],
+    ));
   }
 }

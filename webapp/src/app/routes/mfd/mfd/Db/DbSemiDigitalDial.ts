@@ -1,5 +1,7 @@
+import { Subscription } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { DialConfig, DialValue, Rectangle, Size } from "../interfaces";
+import { runSelfTestOverRange } from "../self-test";
 
 interface DbSemiDigitalDialOptions extends DialConfig {
   /** The overall size of the dial. */
@@ -128,5 +130,13 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
         ctx.restore();
       });
     });
+  }
+
+  public runSelfTest(ms: number, delta: number, tick: (v: number) => void, completed: () => void): Subscription {
+    return runSelfTestOverRange(
+      ms, 0, delta, [this.options.limits[1].value, this.options.limits[0].value, 0],
+      tick,
+      completed,
+    );
   }
 }

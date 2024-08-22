@@ -1,6 +1,8 @@
+import { delay, first, interval, map, Subscription, takeWhile, timeout, timer } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { Alignment, Point, Rectangle, Size } from "../interfaces";
 import { DbLampColourNames, DbLampColours, DbLampNames, DbLamps, getDbLampColour } from "./DbLamps";
+import { setThrowInvalidWriteToSignalError } from "@angular/core/primitives/signals";
 
 interface LampOptions {
   /** The radius of each lamp. */
@@ -119,5 +121,22 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
   }
 
   public override renderStatic(ctx: CanvasRenderingContext2D): void {
+  }
+
+  public runSelfTest(ms: number, tick: (v: DbLampNames[]) => void, completed: () => void): Subscription {
+    const allLamps = this.options.lamps
+      .reduce((accum, lamps) => {
+        accum.push(...lamps);
+
+        return accum;
+      }, [])
+      .filter((x): x is DbLampNames => x !== "blank")
+      ;
+
+    tick(allLamps);
+
+    return interval(ms).pipe(
+      first(),
+    ).subscribe(completed);
   }
 }

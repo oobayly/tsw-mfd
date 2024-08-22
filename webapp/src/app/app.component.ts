@@ -1,14 +1,21 @@
 import { CommonModule } from "@angular/common";
-import { Component } from '@angular/core';
+import { Component, importProvidersFrom } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router, RouterModule, RouterOutlet, UrlTree } from '@angular/router';
+import { NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
 import { filter, map, Observable, of, startWith } from "rxjs";
 import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
+
+interface LastMfd {
+  name: string;
+  path: string;
+}
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, RouterModule
+    CommonModule, RouterModule,
+    NgbTooltipModule
   ],
   providers: [MfdControlsService],
   templateUrl: './app.component.html',
@@ -27,7 +34,7 @@ export class AppComponent {
   // Derived observables
   // ========================
 
-  public readonly lastMfd$: Observable<any>;
+  public readonly lastMfd$: Observable<LastMfd>;
 
   public readonly navLeft$: Observable<boolean>;
 
@@ -53,10 +60,10 @@ export class AppComponent {
   // Methods
   // ========================
 
-  public getLastMdfObservable(): Observable<string[]> {
+  public getLastMdfObservable(): Observable<LastMfd> {
     return this.mfdControls.mfd$.pipe(
-      filter((x) => !!x),
-      map(() => {
+      filter((mfd) => !!mfd),
+      map((mfd) => {
         const path: string[] = [];
 
         for (let snapshot = this.route.snapshot.root; !!snapshot; snapshot = snapshot.firstChild!) {
@@ -65,13 +72,11 @@ export class AppComponent {
           }
         }
 
-        if (path[0] === "mfd" && path.length > 1) {
-          return [".", ...path];
+        return {
+          name: mfd.name,
+          path: "/" + path.join("/"),
         }
-
-        return undefined;
       }),
-      filter((x): x is string[] => !!x)
     );
   }
 }

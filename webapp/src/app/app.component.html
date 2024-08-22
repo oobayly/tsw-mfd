@@ -13,14 +13,14 @@
           <i class="bi bi-map fs-2"></i>
         </a>
       </li>
-      <li class="nav-item" *ngIf="lastMfd$ | async as lastMfd">
-        <a [routerLink]="lastMfd" class="nav-link" routerLinkActive="active">
+      <li class="nav-item" *ngIf="lastMfd$ | async as lastMfd" [ngbTooltip]="lastMfd.name" placement="bottom">
+        <a [routerLink]="lastMfd.path" class="nav-link" routerLinkActive="active">
           <i class="bi bi-speedometer2 fs-2"></i>
         </a>
       </li>
     </ul>
     <ul class="navbar-nav border-top border-secondary" *ngIf="mfdControls.mfd$| async as mfd">
-      <li class="nav-item">
+      <li class="nav-item" ngbTooltip="MFD Self Test">
         <button class="nav-link" (click)="mfdControls.runSelfTest()">
           <i class="bi bi-wrench-adjustable-circle fs-2"></i>
         </button>
