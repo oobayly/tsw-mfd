@@ -1,10 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { latLng, Layer, LayersControlEvent, LayersControlEventHandlerFn, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
+import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { filter, map, Observable, startWith } from "rxjs";
+import { map, Observable } from "rxjs";
 import { CommonModule } from "@angular/common";
-import { GrayscaleTileLayer } from "./leaflet/GrayscaleTileLayer";
 
 @Component({
   selector: 'app-map',
@@ -121,8 +120,8 @@ export class MapComponent implements OnDestroy {
     void this.updateSettings();
   }
 
-  public onMoveMove(e: LeafletEvent): void {
-    // void this.updateSettings();
+  public onMapMove(e: LeafletEvent): void {
+    void this.updateSettings();
   }
 
   public onMapReady(e: Map): void {
