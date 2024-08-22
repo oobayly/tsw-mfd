@@ -4,7 +4,7 @@ export abstract class MfdPartBase<TOptions, TRenderOptions> {
   protected abstract readonly partBounds: Readonly<Rectangle>;
 
   constructor(
-    protected readonly options: Readonly<TOptions>,
+    public readonly options: Readonly<TOptions>,
     public readonly bounds: Readonly<Rectangle>,
   ) { }
 

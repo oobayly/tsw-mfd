@@ -1,5 +1,5 @@
-import { MfdPartBase } from "./MfdPartBase";
-import { DialConfig, DialValue, Rectangle, Size } from "./interfaces";
+import { MfdPartBase } from "../MfdPartBase";
+import { DialConfig, DialValue, Rectangle, Size } from "../interfaces";
 
 interface DbSemiDigitalDialOptions extends DialConfig {
   /** The overall size of the dial. */

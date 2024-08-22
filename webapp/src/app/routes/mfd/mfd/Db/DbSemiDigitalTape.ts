@@ -1,6 +1,6 @@
-import { Alignment, Rectangle, Size } from "./interfaces";
+import { Alignment, Rectangle, Size } from "../interfaces";
 import { getDistanceTicks, LzbDistanceGroup } from "./Lzb";
-import { MfdPartBase } from "./MfdPartBase";
+import { MfdPartBase } from "../MfdPartBase";
 
 type TapeOptions = {};
 
