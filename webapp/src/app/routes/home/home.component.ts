@@ -20,6 +20,6 @@ interface HomeCard {
 export class HomeComponent {
   public readonly cards$: Observable<HomeCard[]> = of([
     { title: "Rail Map", description: "Railway Map from OpenRailwayMap.org", path: "/map", image: "/images/cards/openrailwaymap.png" },
-    { title: "DB BR 406", description: "DB ICE 3", path: "/mfd/br406", image: "/images/cards/db-br-406.png" }
+    { title: "DB BR 406", description: "DB ICE 3M", path: "/mfd/br406", image: "/images/cards/db-br-406.png" }
   ]);
 }
