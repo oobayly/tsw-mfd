@@ -1,0 +1,12 @@
+.home-card {
+  width: 300px;
+  height: 300px;
+
+  .card-img-top {
+    background-color: var(--bs-dark);
+    width: 100%;
+    aspect-ratio: 3 /2;
+    object-fit: cover;
+    filter: grayscale(1);
+  }
+}

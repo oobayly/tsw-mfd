@@ -78,8 +78,6 @@ export class MapComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.updateSettings();
-
     this.leaflet?.removeEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet?.removeEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet?.removeEventListener("baselayerchange", this.onBaseLayerChange);
