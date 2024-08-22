@@ -10,6 +10,8 @@ interface DbSemiDigitalDialOptions extends DialConfig {
   radius: number;
   /** The units text. */
   units: string;
+  /** A flag indicating whether the dial has a limit display. */
+  hasLimit?: true;
 }
 
 /** Represents a dial as used by the DB ICE3. */
@@ -40,7 +42,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
 
   public override renderDynamic(ctx: CanvasRenderingContext2D, { value, target, limit }: DialValue): void {
     this.scaleAndTransform(ctx, (ctx) => {
-      const { radius } = this.options;
+      const { radius, hasLimit, size } = this.options;
       const { angle: angle0, value: value0 } = this.options.limits[0];
       const { angle: angle1, value: value1 } = this.options.limits[1];
       const dAdU = (angle1 - angle0) / (value1 - value0);
@@ -74,12 +76,27 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
         ctx.fill();
         ctx.restore();
       }
+
+      // Limit 
+      if (hasLimit && limit != null) {
+        // Draw the limit LED digits
+        ctx.fillStyle = "#d4ec4d";
+        ctx.font = "22px SevenSeg";
+
+        const y = (size / 2) * 2 / 3; // 2/3 of the radius of the dial
+        const text = limit.toFixed(0).padStart(3, "0");
+        const metrics = ctx.measureText(text);
+        const width = metrics.width;
+        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        ctx.fillText(text, -width / 2, y + height / 2,);
+      }
     });
   }
 
   public override renderStatic(ctx: CanvasRenderingContext2D): void {
     this.scaleAndTransform(ctx, (ctx) => {
-      const { ticks: pips, radius, size } = this.options;
+      const { ticks: pips, radius, size, units, hasLimit } = this.options;
       const { angle: angle0, value: value0 } = this.options.limits[0];
       const { angle: angle1, value: value1 } = this.options.limits[1];
       const dAdU = (angle1 - angle0) / (value1 - value0);
@@ -129,6 +146,33 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
 
         ctx.restore();
       });
+
+      // Units text
+      {
+        const metrics = ctx.measureText(units);
+        const y = (size / 2) / 3; // 1/3 of the radius of the dial
+
+        ctx.fillStyle = "#c3ea9d";
+        ctx.fillText(units,
+          -metrics.width / 2,
+          y + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2
+        );
+      }
+
+      // Limit
+      if (hasLimit) {
+        ctx.fillStyle = "black";
+        ctx.font = "22px SevenSeg";
+
+        const y = (size / 2) * 2 / 3; // 2/3 of the radius of the dial
+        const metrics = ctx.measureText("000");
+        const width = metrics.width + 2 * 5;
+        const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 2 * 5;
+
+        ctx.beginPath();
+        ctx.roundRect(-width / 2, y - height / 2, width, height);
+        ctx.fill();
+      }
     });
   }
 

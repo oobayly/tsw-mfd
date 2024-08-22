@@ -55,7 +55,8 @@ export class Br406Component extends MfdBaseComponent {
           { interval: 5, thickness: 2, ends: [0, 5] },
           { interval: 10, thickness: 2, ends: [- 5, 5] },
           { interval: 50, thickness: 3, ends: [- 8, 8], text: true }
-        ]
+        ],
+        hasLimit: true
       },
       { x: 444, y: 7, width: 216, height: 216 }
     ),
@@ -81,15 +82,6 @@ export class Br406Component extends MfdBaseComponent {
     speed: 0,
     lamps: [],
   };
-
-  // private readonly values = {
-  //   power: { value: <number | undefined>0, delta: .25, min: -100, max: 100 },
-  //   powerTarget: { value: <number | undefined>20, delta: .25, min: -100, max: 100 },
-  //   distance: { value: <number | undefined>9999, delta: 25, min: 0, max: 9999 },
-  //   speed: { value: <number | undefined>0, delta: .5, min: 0, max: 350 },
-  //   speedTarget: { value: <number | undefined>40, delta: .5, min: 0, max: 350 },
-  //   lamps: { value: <DbLampNames | undefined>undefined },
-  // } satisfies Record<string, { value: number, delta: number, min: number, max: number } | { value: DbLampNames | undefined }>;
 
   @ViewChild("container")
   private container?: ElementRef<HTMLElement>;
@@ -161,6 +153,11 @@ export class Br406Component extends MfdBaseComponent {
       25, 3,
       (v) => this.values.speedTarget = v,
       () => this.values.speedTarget = undefined,
+    ));
+    this.subscriptions.push(this.parts.speed.runSelfTest(
+      25, 2,
+      (v) => this.values.speedLimit = v,
+      () => this.values.speedLimit = undefined,
     ));
 
     // LZB

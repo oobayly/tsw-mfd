@@ -48,7 +48,7 @@ export class DbSemiDigitalTape extends MfdPartBase<TapeOptions, number | undefin
 
     this.scaleAndTransform(ctx, (ctx) => {
       // Draw the distance
-      ctx.fillStyle = "#d4ec4dff";
+      ctx.fillStyle = "#d4ec4d";
       ctx.font = "22px SevenSeg";
 
       const { x: bx, y: by, width: bw, height: bh } = this.numbersBounds;
@@ -104,7 +104,7 @@ export class DbSemiDigitalTape extends MfdPartBase<TapeOptions, number | undefin
   public override renderStatic(ctx: CanvasRenderingContext2D): void {
     this.scaleAndTransform(ctx, (ctx) => {
       // LED Insets
-      ctx.fillStyle = "#0c0d0c";
+      ctx.fillStyle = "black";
       ctx.beginPath();
       ctx.roundRect(this.distanceBounds.x, this.distanceBounds.y, this.distanceBounds.width, this.distanceBounds.height, 2);
       ctx.roundRect(this.numbersBounds.x, this.numbersBounds.y, this.numbersBounds.width, this.numbersBounds.height, 2);
