@@ -18,6 +18,11 @@
           <i class="bi bi-speedometer2 fs-2"></i>
         </a>
       </li>
+      <li class="nav-item" *ngIf="isConnected$ | async">
+        <button class="nav-link" (click)="onDebugClick()">
+          <i class="bi bi-bug fs-2"></i>
+        </button>
+      </li>
     </ul>
     <ul class="navbar-nav navbar-lower">
       <li class="nav-item border-secondary" ngbTooltip="MFD Self Test" *ngIf="mfdControls.mfd$| async as mfd">

@@ -6,6 +6,8 @@ import { filter, map, Observable, of, share, startWith, tap } from "rxjs";
 import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
 import { SettingsKey } from "./core/services/setttings.service";
 import { MapSettingsModalComponent } from "./routes/map/components/map-settings-modal/map-settings-modal.component";
+import { Socket } from "ngx-socket-io";
+import { TswSocketService } from "./core/services/tsw-socket.service";
 
 interface LastMfd {
   name: string;
@@ -36,6 +38,8 @@ export class AppComponent {
   // Derived observables
   // ========================
 
+  public readonly isConnected$: Observable<boolean>;
+
   public readonly lastMfd$: Observable<LastMfd>;
 
   public readonly navLeft$: Observable<boolean>;
@@ -53,13 +57,45 @@ export class AppComponent {
     private readonly modal: NgbModal,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly socket: TswSocketService,
   ) {
+    this.isConnected$ = socket.socket$.pipe(map((x) => !!x));
     this.settings$ = this.getSettingsKey();
     this.lastMfd$ = this.getLastMdfObservable();
     this.navSide$ = of("left");
 
     this.navLeft$ = this.navSide$.pipe(map((x) => x === "left"));
     this.navRight$ = this.navSide$.pipe(map((x) => x === "right"));
+
+    console.time("got-now");
+
+    let last = Date.now();
+
+    socket.fromEvent("client_id").subscribe((x) => {
+      console.log("client_id", x);
+    })
+
+    socket.fromEvent<{ lat: number, lng: number }>("latlng").subscribe((p) => {
+      console.log(p);
+    })
+
+    // socket.fromEvent("now").subscribe((x) => {
+    //   const now = Date.now();
+    //   const dT = now - last;
+
+    //   console.timeLog("got-now", x, dT);
+
+    //   last = now;
+    // });
+    // socket.fromEvent("date").subscribe((x) => {
+    //   console.log("date", x);
+    // });
+
+    // window.setInterval(() => {
+    //   console.log("Requesting date");
+    //   socket.emit("date?");
+    // }, 10000)
+
   }
 
   // ========================
@@ -108,13 +144,29 @@ export class AppComponent {
 
         return undefined;
       }),
-      tap((k) => console.log(k)),
     )
   }
 
   // ========================
   // Methods
   // ========================
+
+  public async onDebugClick(): Promise<void> {
+    const socket = await this.socket.getSocket();
+
+    if (!socket) {
+      return;
+    }
+
+    socket.fromOneTimeEvent<number>("now").then((e) => {
+      const now = Date.now();
+
+      console.log("RTT", now - then);
+    });
+
+    const then = Date.now();
+    socket.emit("now");
+  }
 
   public async onSettingClick(key: SettingsKey): Promise<void> {
     if (key === "map") {

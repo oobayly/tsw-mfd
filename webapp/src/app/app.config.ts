@@ -9,6 +9,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    importProvidersFrom(NgxIndexedDBModule.forRoot(indexedDbConfig))
+    importProvidersFrom(NgxIndexedDBModule.forRoot(indexedDbConfig)),
   ]
 };

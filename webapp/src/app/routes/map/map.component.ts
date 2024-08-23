@@ -2,10 +2,10 @@ import { Component, OnDestroy } from '@angular/core';
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { distinctUntilChanged, first, map, Observable, shareReplay } from "rxjs";
+import { combineLatest, distinctUntilChanged, first, map, Observable, shareReplay, Subscription } from "rxjs";
 import { CommonModule } from "@angular/common";
-import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { ReactiveFormsModule } from "@angular/forms";
+import { TswSocketService } from "../../core/services/tsw-socket.service";
 
 @Component({
   selector: 'app-map',
@@ -61,7 +61,7 @@ export class MapComponent implements OnDestroy {
 
   private leaflet?: Map;
 
-  private modalRef?: NgbModalRef;
+  private readonly subscriptions: Subscription[] = [];
 
   // ========================
   // Observables
@@ -80,8 +80,8 @@ export class MapComponent implements OnDestroy {
   // ========================
 
   constructor(
-    private readonly modalService: NgbModal,
     private readonly settings: SetttingsService,
+    private readonly socket: TswSocketService,
   ) {
     const settings$ = this.settings.watchSetting("map").pipe(shareReplay(1));
 
@@ -114,11 +114,16 @@ export class MapComponent implements OnDestroy {
           center: latLng(settings?.lat ?? 50.94, settings?.lng ?? 6.96), // Default to Köln 50.94349200960879, 6.9581831729137456
         } satisfies MapOptions;
       }),
-    )
+    );
+
+    this.subscriptions.push(socket.fromEvent<{ lat: number, lng: number }>("latlng").subscribe((p) => {
+      this.leaflet?.panTo(p);
+    }));
   }
 
   ngOnDestroy(): void {
-    this.modalRef?.close();
+    this.subscriptions.forEach((s) => s.unsubscribe());
+
     this.leaflet?.removeEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet?.removeEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet?.removeEventListener("baselayerchange", this.onBaseLayerChange);
