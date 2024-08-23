@@ -1,3 +1,4 @@
-<div class="w-100 h-100" *ngIf="options$ | async as options" leaflet [leafletOptions]="options"
-  [leafletLayersControl]="controls" (leafletMapReady)="onMapReady($event)" (leafletMapMoveEnd)="onMapMove($event)">
+<div #leafletContainer class="w-100 h-100" [style.filter]="brightnes$ | async" *ngIf="options$ | async as options"
+  leaflet [leafletOptions]="options" [leafletLayersControl]="controls" (leafletMapReady)="onMapReady($event)"
+  (leafletMapMoveEnd)="onMapMove($event)">
 </div>

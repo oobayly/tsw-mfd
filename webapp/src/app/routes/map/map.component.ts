@@ -1,8 +1,8 @@
-import { Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { map, Observable } from "rxjs";
+import { BehaviorSubject, map, Observable, take, tap } from "rxjs";
 import { CommonModule } from "@angular/common";
 
 @Component({
@@ -17,23 +17,40 @@ import { CommonModule } from "@angular/common";
 })
 export class MapComponent implements OnDestroy {
   // ========================
+  // Fields
+  // ========================
+
+  private _leafletContainer?: ElementRef<HTMLElement>;
+
+  // ========================
   // Properties
   // ========================
 
-  private readonly attribution = "&copy; <a href='http://www.openrailwaymap.org/copyright'>OpenRailwayMap</a>";
+  private readonly attributions = {
+    osm: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    orm: "&copy; <a href='http://www.openrailwaymap.org/copyright'>OpenRailwayMap</a>",
+  };
 
   private readonly baseLayers = {
-    'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }),
-    // "OSM Graysale": new GrayscaleTileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }),
-    "None": tileLayer(""),
+    'OSM': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      id: "osm",
+      maxZoom: 18,
+      attribution: this.attributions.osm
+    }),
+    'OSM Grayscale': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      id: "osm-gray",
+      maxZoom: 18,
+      attribution: this.attributions.osm
+    }),
+    "None": tileLayer("", { id: "blank" }),
   }
 
   private readonly overlays = {
-    "Standard": tileLayer("https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attribution }),
-    "Max Speed": tileLayer("https://tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attribution }),
-    "Signals": tileLayer("https://tiles.openrailwaymap.org/signals/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attribution }),
-    "Electrification": tileLayer("https://tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attribution }),
-    "Gauge": tileLayer("https://tiles.openrailwaymap.org/gauge/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attribution }),
+    "Standard": tileLayer("https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
+    "Max Speed": tileLayer("https://tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
+    "Signals": tileLayer("https://tiles.openrailwaymap.org/signals/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
+    "Electrification": tileLayer("https://tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
+    "Gauge": tileLayer("https://tiles.openrailwaymap.org/gauge/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
   } satisfies Record<string, Layer>;
 
   public readonly controls: LeafletControlLayersConfig = {
@@ -47,7 +64,23 @@ export class MapComponent implements OnDestroy {
   // Observables
   // ========================
 
+  public readonly brightnes$ = new BehaviorSubject("brightness(1)");
+
   public readonly options$: Observable<MapOptions>;
+
+  // ========================
+  // View children
+  // ========================
+
+  @ViewChild("leafletContainer", { static: false })
+  private set leafletContainer(value: ElementRef<HTMLElement> | undefined) {
+    // Bit hacky, but this may be undefined in ngAfterViewInit, so we update the Grayscale layer from here
+    this._leafletContainer = value;
+    this.updateGrayscaleLayer();
+  };
+  private get leafletContainer(): ElementRef<HTMLElement> | undefined {
+    return this._leafletContainer;
+  }
 
   // ========================
   // Lifecycle
@@ -64,7 +97,7 @@ export class MapComponent implements OnDestroy {
           ;
 
         if (!layers.length) {
-          layers.push(this.baseLayers["Open Street Map"], this.overlays["Max Speed"]);
+          layers.push(this.baseLayers["OSM"], this.overlays["Max Speed"]);
         }
 
         return {
@@ -72,7 +105,7 @@ export class MapComponent implements OnDestroy {
           zoom: settings?.zoom ?? 12,
           center: latLng(settings?.lat ?? 50.94, settings?.lng ?? 6.96), // Default to Köln 50.94349200960879, 6.9581831729137456
         } satisfies MapOptions;
-      })
+      }),
     )
   }
 
@@ -85,6 +118,23 @@ export class MapComponent implements OnDestroy {
   // ========================
   // Methods
   // ========================
+
+  private updateGrayscaleLayer() {
+    if (!this.leafletContainer) {
+      return;
+    }
+
+    // Bit hacky, but this is the only way to target the leaflet-layer that has the Grayscale OSM tiles.
+    const baseLayers = this.leafletContainer.nativeElement.getElementsByClassName("leaflet-layer");
+
+    Array.from(baseLayers).forEach((l) => {
+      const zIndex = l.computedStyleMap().get("z-index");
+
+      if (zIndex?.toString() == "2") {
+        l.classList.add("grayscale");
+      }
+    })
+  }
 
   private async updateSettings(): Promise<void> {
     if (!this.leaflet) {
@@ -117,6 +167,7 @@ export class MapComponent implements OnDestroy {
   // ========================
 
   private onBaseLayerChange = (_: LayersControlEvent): void => {
+    this.updateGrayscaleLayer();
     void this.updateSettings();
   }
 
