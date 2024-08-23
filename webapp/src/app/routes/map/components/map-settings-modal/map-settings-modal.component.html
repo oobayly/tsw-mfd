@@ -1,0 +1,23 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    <i class="bi-map pe-2"></i>
+    Map Settings
+  </h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  <form [formGroup]="form">
+    <div class="mb-3">
+      <label for="brightnes-setting">
+        Brightness {{form.controls.brightness.value * 100 | number:'1.0-0'}}%
+      </label>
+      <div class="input-group">
+        <input type="range" id="brightnes-setting" class="form-range" formControlName="brightness" min=".5" max="1"
+          step=".05">
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary" (click)="onSaveClick()">Save</button>
+</div>

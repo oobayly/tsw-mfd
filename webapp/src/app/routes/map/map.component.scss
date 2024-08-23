@@ -1,7 +1,11 @@
+.leaflet-container {
+  filter: brightness(var(--brightness, 1));
+}
+
 ::ng-deep {
   .leaflet-layer {
     &.grayscale {
-      filter: grayscale(1);
+      filter: grayscale(var(--osm-grayscale, 1));
     }
   }
 }

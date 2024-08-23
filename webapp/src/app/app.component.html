@@ -19,10 +19,15 @@
         </a>
       </li>
     </ul>
-    <ul class="navbar-nav border-top border-secondary" *ngIf="mfdControls.mfd$| async as mfd">
-      <li class="nav-item" ngbTooltip="MFD Self Test">
+    <ul class="navbar-nav navbar-lower">
+      <li class="nav-item border-secondary" ngbTooltip="MFD Self Test" *ngIf="mfdControls.mfd$| async as mfd">
         <button class="nav-link" (click)="mfdControls.runSelfTest()">
           <i class="bi bi-wrench-adjustable-circle fs-2"></i>
+        </button>
+      </li>
+      <li class="nav-item border-secondary" *ngIf="settings$ | async as key">
+        <button class="nav-link" (click)="onSettingClick(key)">
+          <i class="bi bi-gear fs-2"></i>
         </button>
       </li>
     </ul>

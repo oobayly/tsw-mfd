@@ -1,15 +1,17 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
+import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { BehaviorSubject, map, Observable, take, tap } from "rxjs";
+import { distinctUntilChanged, first, map, Observable, shareReplay } from "rxjs";
 import { CommonModule } from "@angular/common";
+import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
+import { ReactiveFormsModule } from "@angular/forms";
 
 @Component({
   selector: 'app-map',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, ReactiveFormsModule,
     LeafletModule
   ],
   templateUrl: './map.component.html',
@@ -19,8 +21,6 @@ export class MapComponent implements OnDestroy {
   // ========================
   // Fields
   // ========================
-
-  private _leafletContainer?: ElementRef<HTMLElement>;
 
   // ========================
   // Properties
@@ -40,7 +40,8 @@ export class MapComponent implements OnDestroy {
     'OSM Grayscale': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       id: "osm-gray",
       maxZoom: 18,
-      attribution: this.attributions.osm
+      attribution: this.attributions.osm,
+      className: "grayscale"
     }),
     "None": tileLayer("", { id: "blank" }),
   }
@@ -60,11 +61,13 @@ export class MapComponent implements OnDestroy {
 
   private leaflet?: Map;
 
+  private modalRef?: NgbModalRef;
+
   // ========================
   // Observables
   // ========================
 
-  public readonly brightnes$ = new BehaviorSubject("brightness(1)");
+  public readonly brightness$: Observable<number>;
 
   public readonly options$: Observable<MapOptions>;
 
@@ -72,29 +75,34 @@ export class MapComponent implements OnDestroy {
   // View children
   // ========================
 
-  @ViewChild("leafletContainer", { static: false })
-  private set leafletContainer(value: ElementRef<HTMLElement> | undefined) {
-    // Bit hacky, but this may be undefined in ngAfterViewInit, so we update the Grayscale layer from here
-    this._leafletContainer = value;
-    this.updateGrayscaleLayer();
-  };
-  private get leafletContainer(): ElementRef<HTMLElement> | undefined {
-    return this._leafletContainer;
-  }
-
   // ========================
   // Lifecycle
   // ========================
 
   constructor(
+    private readonly modalService: NgbModal,
     private readonly settings: SetttingsService,
   ) {
-    this.options$ = this.settings.getSetting("map").pipe(
+    const settings$ = this.settings.watchSetting("map").pipe(shareReplay(1));
+
+    this.brightness$ = settings$.pipe(
+      map((x) => x?.brightness ?? 1),
+      distinctUntilChanged(),
+    );
+
+    this.options$ = settings$.pipe(
+      first(),
       map((settings) => {
-        const layers = Object.entries({ ...this.overlays, ...this.baseLayers })
-          .filter(([k]) => settings?.layers.includes(k))
-          .map(([_, v]) => v)
-          ;
+        let layers: TileLayer[];
+
+        if (settings?.layers) {
+          layers = Object.entries({ ...this.overlays, ...this.baseLayers })
+            .filter(([k]) => settings?.layers?.includes(k))
+            .map(([_, v]) => v)
+            ;
+        } else {
+          layers = [];
+        }
 
         if (!layers.length) {
           layers.push(this.baseLayers["OSM"], this.overlays["Max Speed"]);
@@ -110,6 +118,7 @@ export class MapComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.modalRef?.close();
     this.leaflet?.removeEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet?.removeEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet?.removeEventListener("baselayerchange", this.onBaseLayerChange);
@@ -118,23 +127,6 @@ export class MapComponent implements OnDestroy {
   // ========================
   // Methods
   // ========================
-
-  private updateGrayscaleLayer() {
-    if (!this.leafletContainer) {
-      return;
-    }
-
-    // Bit hacky, but this is the only way to target the leaflet-layer that has the Grayscale OSM tiles.
-    const baseLayers = this.leafletContainer.nativeElement.getElementsByClassName("leaflet-layer");
-
-    Array.from(baseLayers).forEach((l) => {
-      const zIndex = l.computedStyleMap().get("z-index");
-
-      if (zIndex?.toString() == "2") {
-        l.classList.add("grayscale");
-      }
-    })
-  }
 
   private async updateSettings(): Promise<void> {
     if (!this.leaflet) {
@@ -155,7 +147,7 @@ export class MapComponent implements OnDestroy {
       }
     });
 
-    await this.settings.updateSetting("map", {
+    await this.settings.patchSetting("map", {
       layers,
       lat, lng,
       zoom,
@@ -167,7 +159,6 @@ export class MapComponent implements OnDestroy {
   // ========================
 
   private onBaseLayerChange = (_: LayersControlEvent): void => {
-    this.updateGrayscaleLayer();
     void this.updateSettings();
   }
 
