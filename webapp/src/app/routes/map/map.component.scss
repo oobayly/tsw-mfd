@@ -8,4 +8,9 @@
       filter: grayscale(var(--osm-grayscale, 1));
     }
   }
+  .leaflet-control-button {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+  }
 }

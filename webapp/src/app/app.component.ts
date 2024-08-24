@@ -70,35 +70,9 @@ export class AppComponent {
     this.navLeft$ = this.navSide$.pipe(map((x) => x === "left"));
     this.navRight$ = this.navSide$.pipe(map((x) => x === "right"));
 
-    console.time("got-now");
-
-    let last = Date.now();
-
     socket.fromEvent("client_id").subscribe((x) => {
       console.log("client_id", x);
     })
-
-    socket.fromEvent<{ lat: number, lng: number }>("latlng").subscribe((p) => {
-      console.log(p);
-    })
-
-    // socket.fromEvent("now").subscribe((x) => {
-    //   const now = Date.now();
-    //   const dT = now - last;
-
-    //   console.timeLog("got-now", x, dT);
-
-    //   last = now;
-    // });
-    // socket.fromEvent("date").subscribe((x) => {
-    //   console.log("date", x);
-    // });
-
-    // window.setInterval(() => {
-    //   console.log("Requesting date");
-    //   socket.emit("date?");
-    // }, 10000)
-
   }
 
   // ========================

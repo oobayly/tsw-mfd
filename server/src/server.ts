@@ -24,11 +24,23 @@ app.get('/', (req, res) => {
   res.send('Hello, TypeScript + Node.js + Express!');
 });
 
+const state: { location?: { lat: number, lng: number } } = {};
+
 io.on("connection", (socket) => {
   const id = v4();
   console.log(`${id}: connected`);
 
   socket.emit("client_id", id);
+
+  if (state.location) {
+    io.emit("latlng", state.location);
+  }
+
+  socket.on("latlng", () => {
+    if (state.location) {
+      socket.emit("latlng", state.location);
+    }
+  })
 
   socket.on("echo", (values) => {
     console.log(`${id}: requested echo`);
@@ -78,6 +90,7 @@ const readCommands = async (): Promise<void> => {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[3]);
 
+      state.location = { lat, lng };
       io.emit("latlng", { lat, lng });
     }
 

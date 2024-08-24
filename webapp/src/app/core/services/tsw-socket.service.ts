@@ -23,7 +23,7 @@ export class TswSocketService {
       this.config$.next({
         url: "http://localhost:3000"
       });
-    }, 10000);
+    });
   }
 
   public getSocket(): Promise<Socket | undefined> {

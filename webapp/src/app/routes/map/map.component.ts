@@ -1,8 +1,8 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { latLng, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
+import { Control, DomUtil, LatLng, latLng, LatLngLiteral, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { combineLatest, distinctUntilChanged, first, map, Observable, shareReplay, Subscription } from "rxjs";
+import { combineLatest, distinctUntilChanged, filter, first, firstValueFrom, map, Observable, pairwise, shareReplay, startWith, Subscription, tap, timeout } from "rxjs";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule } from "@angular/forms";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
@@ -70,11 +70,16 @@ export class MapComponent implements OnDestroy {
 
   public readonly brightness$: Observable<number>;
 
+  public readonly location$: Observable<LatLngLiteral>;
+
   public readonly options$: Observable<MapOptions>;
 
   // ========================
   // View children
   // ========================
+
+  @ViewChild("locationButton")
+  private locationButton!: TemplateRef<unknown>;
 
   // ========================
   // Lifecycle
@@ -83,6 +88,7 @@ export class MapComponent implements OnDestroy {
   constructor(
     private readonly settings: SetttingsService,
     private readonly socket: TswSocketService,
+    private readonly viewContainerRef: ViewContainerRef,
   ) {
     const settings$ = this.settings.watchSetting("map").pipe(shareReplay(1));
 
@@ -117,9 +123,9 @@ export class MapComponent implements OnDestroy {
       }),
     );
 
-    this.subscriptions.push(socket.fromEvent<{ lat: number, lng: number }>("latlng").subscribe((p) => {
-      this.leaflet?.panTo(p);
-    }));
+    this.location$ = socket.fromEvent<LatLngLiteral>("latlng").pipe(
+      shareReplay(1),
+    );
   }
 
   ngOnDestroy(): void {
@@ -168,7 +174,22 @@ export class MapComponent implements OnDestroy {
     void this.updateSettings();
   }
 
-  public onMapMove(e: LeafletEvent): void {
+
+  public async onLocationClick(e: Event): Promise<void> {
+    e.preventDefault();
+
+    (await this.socket.getSocket())?.emit("latlng");
+
+    this.location$.pipe(
+      timeout(50),
+      first()
+    ).subscribe({
+      next: (p) => this.leaflet?.panTo(p),
+      error: () => { }
+    });
+  }
+
+  public onMapMove(_: LeafletEvent): void {
     void this.updateSettings();
   }
 
@@ -178,6 +199,40 @@ export class MapComponent implements OnDestroy {
     this.leaflet.addEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet.addEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet.addEventListener("baselayerchange", this.onBaseLayerChange);
+
+    // Add the custom location control
+    const ctl = new Control();
+    ctl.onAdd = () => {
+      const elem = this.locationButton.createEmbeddedView(null);
+
+      elem.detectChanges();
+
+      return elem.rootNodes[0];
+    }
+    ctl.options = {
+      position: "bottomleft",
+    };
+    ctl.addTo(this.leaflet);
+
+    // Listen for location changes
+    this.subscriptions.push(this.location$.pipe(
+      pairwise(),
+    ).subscribe(([last, current]) => {
+      if (!this.leaflet) {
+        return;
+      }
+
+      // Precision is lost when zoomed out, so get the relative coordinates of the last position
+      const { x: x0, y: y0 } = this.leaflet.latLngToLayerPoint(last);
+      const { x: x1, y: y1 } = this.leaflet.latLngToLayerPoint(this.leaflet.getCenter());
+      const dx = Math.abs(x0 - x1);
+      const dy = Math.abs(y0 - y1);
+
+      // Only pan if the map hasn't been panned away by the user
+      if (dx < 10 && dy < 10) {
+        this.leaflet?.panTo(current);
+      }
+    }));
   }
 
   private onOverlayAdd = (_: LayersControlEvent) => {

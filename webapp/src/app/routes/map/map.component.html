@@ -2,3 +2,11 @@
   [leafletOptions]="options" [leafletLayersControl]="controls" (leafletMapReady)="onMapReady($event)"
   (leafletMapMoveEnd)="onMapMove($event)">
 </div>
+
+<ng-template #locationButton>
+  <div class="leaflet-bar">
+    <a href="#" class="leaflet-control-button" (click)="onLocationClick($event)">
+      <i class="bi bi-crosshair fs-3"></i>
+    </a>
+  </div>
+</ng-template>
