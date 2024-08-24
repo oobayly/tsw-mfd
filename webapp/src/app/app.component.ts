@@ -55,8 +55,7 @@ export class AppComponent implements OnDestroy {
     private readonly modal: NgbModal,
     readonly tooltip: NgbTooltipConfig,
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly socket: TswSocketService,
+    readonly socket: TswSocketService,
   ) {
     tooltip.triggers = "hover:click";
 
@@ -105,23 +104,6 @@ export class AppComponent implements OnDestroy {
   // ========================
   // Methods
   // ========================
-
-  public async onDebugClick(): Promise<void> {
-    const socket = await this.socket.getSocket();
-
-    if (!socket) {
-      return;
-    }
-
-    socket.fromOneTimeEvent<number>("now").then((e) => {
-      const now = Date.now();
-
-      console.log("RTT", now - then);
-    });
-
-    const then = Date.now();
-    socket.emit("now");
-  }
 
   public async onFullscreenToggle(): Promise<void> {
     if (document.fullscreenElement) {

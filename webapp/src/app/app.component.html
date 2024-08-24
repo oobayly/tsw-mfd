@@ -3,7 +3,7 @@
   <nav class="sidebar navbar navbar-dark bg-dark flex-column border-secondary"
     [ngClass]="{'border-end': navLeft$ | async, 'border-start order-3': navRight$ | async}">
     <ul class="navbar-nav">
-      <li class="nav-item">
+      <li class="nav-item border-secondary border-bottom">
         <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
           <i class="bi bi-house fs-2"></i>
         </a>
@@ -17,11 +17,6 @@
         <a [routerLink]="lastMfd.path" class="nav-link" routerLinkActive="active">
           <i class="bi bi-speedometer2 fs-2"></i>
         </a>
-      </li>
-      <li class="nav-item" *ngIf="isConnected$ | async">
-        <button class="nav-link" (click)="onDebugClick()">
-          <i class="bi bi-bug fs-2"></i>
-        </button>
       </li>
     </ul>
     <ul class="navbar-nav navbar-lower">
