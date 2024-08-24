@@ -1,8 +1,8 @@
 import { CommonModule } from "@angular/common";
-import { Component, importProvidersFrom } from '@angular/core';
+import { Component, importProvidersFrom, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, RouterModule, RouterOutlet, UrlTree } from '@angular/router';
 import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
-import { filter, map, Observable, of, share, startWith, tap } from "rxjs";
+import { BehaviorSubject, filter, flatMap, map, Observable, of, share, startWith, tap } from "rxjs";
 import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
 import { SettingsKey } from "./core/services/setttings.service";
 import { MapSettingsModalComponent } from "./routes/map/components/map-settings-modal/map-settings-modal.component";
@@ -25,12 +25,14 @@ interface LastMfd {
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   title = 'webapp';
 
   // ========================
   // Observables
   // ========================
+
+  public readonly isFullscreen$ = new BehaviorSubject(!!document.fullscreenElement);
 
   public readonly navSide$: Observable<"left" | "right">;
 
@@ -72,7 +74,13 @@ export class AppComponent {
 
     socket.fromEvent("client_id").subscribe((x) => {
       console.log("client_id", x);
-    })
+    });
+
+    document.addEventListener("fullscreenchange", this.onFullscreenChange);
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener("fullscreenchange", this.onFullscreenChange);
   }
 
   // ========================
@@ -143,6 +151,18 @@ export class AppComponent {
 
     const then = Date.now();
     socket.emit("now");
+  }
+
+  public async onFullscreenToggle(): Promise<void> {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.body.requestFullscreen()
+    }
+  }
+
+  public onFullscreenChange = (_: Event) => {
+    this.isFullscreen$.next(!!document.fullscreenElement);
   }
 
   public async onSettingClick(key: SettingsKey): Promise<void> {
