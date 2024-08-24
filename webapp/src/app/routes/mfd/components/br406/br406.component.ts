@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from "@angular/core";
 import { MfdBaseComponent } from "../mfd-base/mfd-base.component";
 import { DbSemiDigitalDial } from "../../mfd/Db/DbSemiDigitalDial";
 import { Size } from "../../mfd/interfaces";
@@ -6,7 +6,7 @@ import { radians } from "../../../../core/helpers";
 import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
 import { DbLampPanel } from "../../mfd/Db/DbLampPanel";
 import { DbLampNames } from "../../mfd/Db/DbLamps";
-import { concat, finalize, mergeMap, tap } from "rxjs";
+import { concat, finalize, tap } from "rxjs";
 
 interface MfdValues {
   distance?: number;
@@ -19,11 +19,11 @@ interface MfdValues {
 }
 
 @Component({
-  selector: 'app-br406',
+  selector: "app-br406",
   standalone: true,
   imports: [],
-  templateUrl: './br406.component.html',
-  styleUrls: ["../mfd-base/mfd-base.component.scss", './br406.component.scss']
+  templateUrl: "./br406.component.html",
+  styleUrls: ["../mfd-base/mfd-base.component.scss", "./br406.component.scss"],
 })
 export class Br406Component extends MfdBaseComponent {
   protected override readonly mfdName = "DB BR 406";
@@ -39,10 +39,10 @@ export class Br406Component extends MfdBaseComponent {
         ticks: [
           { interval: 5, thickness: 2, ends: [0, 5] },
           { interval: 10, thickness: 2, ends: [- 5, 5] },
-          { interval: 50, thickness: 3, ends: [- 8, 8], text: (v) => `${Math.abs(v)}` }
-        ]
+          { interval: 50, thickness: 3, ends: [- 8, 8], text: (v) => `${Math.abs(v)}` },
+        ],
       },
-      { x: 46, y: 7, width: 216, height: 216 }
+      { x: 46, y: 7, width: 216, height: 216 },
     ),
     speed: new DbSemiDigitalDial(
       {
@@ -53,15 +53,15 @@ export class Br406Component extends MfdBaseComponent {
         ticks: [
           { interval: 5, thickness: 2, ends: [0, 5] },
           { interval: 10, thickness: 2, ends: [- 5, 5] },
-          { interval: 50, thickness: 3, ends: [- 8, 8], text: true }
+          { interval: 50, thickness: 3, ends: [- 8, 8], text: true },
         ],
-        hasLimit: true
+        hasLimit: true,
       },
-      { x: 444, y: 7, width: 216, height: 216 }
+      { x: 444, y: 7, width: 216, height: 216 },
     ),
     lzb: new DbSemiDigitalTape(
-      {},
-      { x: 317, y: 8, width: 72, height: 233 }
+      null,
+      { x: 317, y: 8, width: 72, height: 233 },
     ),
     lamps: new DbLampPanel(
       {
@@ -69,7 +69,7 @@ export class Br406Component extends MfdBaseComponent {
         spacing: { x: 2, y: 11 },
         lamps: [
           ["tbl-end", "ros", "ran", "blank", "sifa", "h-aus", "sbb-fail", "pzb-u", "pzb-m", "pzb-o", "h", "e-40", "ende", "b", "lzb"],
-          ["unknown-warn", "g-atb", "blank", "blank", "t", "not-bremse", "sbb-warn", "befehl-40", "pzb-500", "pzb-1000", "g", "unknown-el", "v-40", "s", "lzb-ects"]
+          ["unknown-warn", "g-atb", "blank", "blank", "t", "not-bremse", "sbb-warn", "befehl-40", "pzb-500", "pzb-1000", "g", "unknown-el", "v-40", "s", "lzb-ects"],
         ],
       },
       { x: 69, y: 270, width: 568, height: 83 },
@@ -95,10 +95,7 @@ export class Br406Component extends MfdBaseComponent {
     super();
   }
 
-  protected override onDestroy(): void {
-  }
-
-  protected override animate(ts: number): void {
+  protected override animate(_ts: number): void {
     if (!this.dynamic) {
       return;
     }

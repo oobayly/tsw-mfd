@@ -2,7 +2,7 @@
  * L.TileLayer.Grayscale is a regular tilelayer with grayscale makeover.
  */
 
-import { Coords, DoneCallback, tileLayer, TileLayer, TileLayerOptions } from "leaflet";
+import { TileLayer, TileLayerOptions } from "leaflet";
 
 export class GrayscaleTileLayer extends TileLayer {
   private readonly quotaRed = 21;
@@ -47,7 +47,7 @@ export class GrayscaleTileLayer extends TileLayer {
 
     ctx.filter = "grayscale(1)";
     ctx.drawImage(img, 0, 0);
-    img.crossOrigin = '';
+    img.crossOrigin = "";
 
     // const imgd = ctx.getImageData(0, 0, canvas.width, canvas.height);
     // const pix = imgd.data;

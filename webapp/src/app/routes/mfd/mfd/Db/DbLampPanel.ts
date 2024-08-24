@@ -1,8 +1,7 @@
-import { delay, first, interval, map, Observable, startWith, Subscription, takeWhile, timeout, timer } from "rxjs";
+import { first, interval, map, Observable, startWith } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { Alignment, Point, Rectangle, Size } from "../interfaces";
-import { DbLampColourNames, DbLampColours, DbLampNames, DbLamps, getDbLampColour } from "./DbLamps";
-import { setThrowInvalidWriteToSignalError } from "@angular/core/primitives/signals";
+import { DbLampNames, DbLamps, getDbLampColour } from "./DbLamps";
 
 interface LampOptions {
   /** The radius of each lamp. */
@@ -18,7 +17,7 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
 
   constructor(
     options: Readonly<LampOptions>,
-    bounds: Readonly<Rectangle>
+    bounds: Readonly<Rectangle>,
   ) {
     super(options, bounds);
 
@@ -104,7 +103,7 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
 
                 ctx.fillText(content.t,
                   -metrics.width / 2,
-                  (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2
+                  (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
                 );
               }
             })
@@ -120,7 +119,8 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
     }, Alignment.Top | Alignment.Left);
   }
 
-  public override renderStatic(ctx: CanvasRenderingContext2D): void {
+  public override renderStatic(_ctx: CanvasRenderingContext2D): void {
+    // TODO: Improve static rendering
   }
 
   public runSelfTest(duration: number): Observable<DbLampNames[]> {
@@ -136,7 +136,7 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
     return interval(duration * 1000).pipe(
       first(),
       startWith(undefined),
-      map(() => allLamps)
+      map(() => allLamps),
     );
   }
 }

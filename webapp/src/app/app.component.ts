@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
-import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Component, OnDestroy } from "@angular/core";
+import { ActivatedRoute, RouterModule } from "@angular/router";
 import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
 import { BehaviorSubject, filter, map, Observable, of } from "rxjs";
 import { MfdControlsService } from "./core/services/mfd-controls.service";
@@ -13,18 +13,18 @@ interface LastMfd {
 }
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   standalone: true,
   imports: [
     CommonModule, RouterModule,
-    NgbTooltipModule
+    NgbTooltipModule,
   ],
   providers: [MfdControlsService],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  templateUrl: "./app.component.html",
+  styleUrl: "./app.component.scss",
 })
 export class AppComponent implements OnDestroy {
-  title = 'webapp';
+  title = "webapp";
 
   // ========================
   // Observables
@@ -57,7 +57,7 @@ export class AppComponent implements OnDestroy {
     private readonly route: ActivatedRoute,
     readonly socket: TswSocketService,
   ) {
-    tooltip.triggers = "hover:click";
+    tooltip.triggers = "hover";
 
     this.isConnected$ = socket.socket$.pipe(map((x) => !!x));
     this.lastMfd$ = this.getLastMdfObservable();
@@ -87,7 +87,7 @@ export class AppComponent implements OnDestroy {
       map((mfd) => {
         const path: string[] = [];
 
-        for (let snapshot = this.route.snapshot.root; !!snapshot; snapshot = snapshot.firstChild!) {
+        for (let snapshot = this.route.snapshot.root; snapshot; snapshot = snapshot.firstChild!) {
           if (snapshot.routeConfig?.path) {
             path.push(snapshot.routeConfig.path);
           }

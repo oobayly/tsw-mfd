@@ -1,13 +1,13 @@
 <div class="d-flex w-100 h-100 bg-dark align-items-center justify-content-center">
   <!-- Card -->
   <div class="card home-card m-2 text-bg-light" *ngFor="let item of cards$ | async">
-    <img [src]="item.image" class="card-img-top">
+    <img [src]="item.image" class="card-img-top" alt="Card Image">
     <div class="card-body">
       <h5 class="card-title">{{item.title}}</h5>
       <p class="card-text">
         {{item.description}}
       </p>
     </div>
-    <a [routerLink]="item.path" class="stretched-link"></a>
+    <a [routerLink]="item.path" class="stretched-link"> </a>
   </div>
 </div>

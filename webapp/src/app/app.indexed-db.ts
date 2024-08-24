@@ -1,4 +1,4 @@
-import { DBConfig } from 'ngx-indexed-db';
+import { DBConfig } from "ngx-indexed-db";
 
 // Ahead of time compiles requires an exported function for factories
 export const migrationFactory: DBConfig["migrationFactory"] = () => {
@@ -13,8 +13,8 @@ export const indexedDbConfig: DBConfig = {
     {
       store: "settings",
       storeConfig: { keyPath: "name", autoIncrement: false },
-      storeSchema: []
-    }
+      storeSchema: [],
+    },
   ],
-  migrationFactory
+  migrationFactory,
 }

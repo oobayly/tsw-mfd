@@ -1,4 +1,4 @@
-import { interval, map, Observable, Subscription, takeWhile } from "rxjs";
+import { interval, map, Observable, takeWhile } from "rxjs";
 
 export const runSelfTestOverRange = (
   duration: number, delta: number, targets: number[],
@@ -36,6 +36,6 @@ export const runSelfTestOverRange = (
       }
 
       return value;
-    })
+    }),
   );
 }

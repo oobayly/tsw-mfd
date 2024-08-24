@@ -1,21 +1,21 @@
-import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { Control, DomUtil, LatLng, latLng, LatLngLiteral, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
+import { Control, latLng, LatLngLiteral, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
 import { SetttingsService } from "../../core/services/setttings.service";
-import { combineLatest, distinctUntilChanged, filter, first, firstValueFrom, map, Observable, pairwise, shareReplay, startWith, Subscription, tap, timeout } from "rxjs";
+import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subscription, timeout } from "rxjs";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule } from "@angular/forms";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
 
 @Component({
-  selector: 'app-map',
+  selector: "app-map",
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule,
-    LeafletModule
+    LeafletModule,
   ],
-  templateUrl: './map.component.html',
-  styleUrl: './map.component.scss'
+  templateUrl: "./map.component.html",
+  styleUrl: "./map.component.scss",
 })
 export class MapComponent implements OnDestroy {
   // ========================
@@ -27,22 +27,22 @@ export class MapComponent implements OnDestroy {
   // ========================
 
   private readonly attributions = {
-    osm: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    osm: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
     orm: "&copy; <a href='http://www.openrailwaymap.org/copyright'>OpenRailwayMap</a>",
   };
 
   private readonly baseLayers = {
-    'OSM': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    "OSM": tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       id: "osm",
       maxZoom: 18,
       attribution: this.attributions.osm,
       className: "baselayer",
     }),
-    'OSM Grayscale': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    "OSM Grayscale": tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       id: "osm-gray",
       maxZoom: 18,
       attribution: this.attributions.osm,
-      className: "baselayer grayscale"
+      className: "baselayer grayscale",
     }),
     "None": tileLayer("", { id: "blank" }),
   }
@@ -182,10 +182,14 @@ export class MapComponent implements OnDestroy {
 
     this.location$.pipe(
       timeout(50),
-      first()
+      first(),
+      catchError(() => of(undefined)),
     ).subscribe({
-      next: (p) => this.leaflet?.panTo(p),
-      error: () => { }
+      next: (p) => {
+        if (p) {
+          this.leaflet?.panTo(p);
+        }
+      },
     });
   }
 

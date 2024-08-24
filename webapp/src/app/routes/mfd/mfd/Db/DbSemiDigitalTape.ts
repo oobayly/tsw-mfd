@@ -1,13 +1,11 @@
 import { Alignment, Rectangle, Size } from "../interfaces";
 import { getDistanceTicks, LzbDistanceGroup } from "./Lzb";
 import { MfdPartBase } from "../MfdPartBase";
-import { Observable, Subscription } from "rxjs";
+import { Observable } from "rxjs";
 import { runSelfTestOverRange } from "../self-test";
 
-type TapeOptions = {};
-
 /** Represents a distance tape as used on the DB ICE3 */
-export class DbSemiDigitalTape extends MfdPartBase<TapeOptions, number | undefined> {
+export class DbSemiDigitalTape extends MfdPartBase<null, number | undefined> {
   protected override partBounds: Readonly<Rectangle> = { x: 0, y: 0, width: 72, height: 233 };
 
   private readonly distanceBounds: Readonly<Rectangle> = { x: 0, y: 39, width: 18, height: 194 };
@@ -57,7 +55,7 @@ export class DbSemiDigitalTape extends MfdPartBase<TapeOptions, number | undefin
 
       ctx.fillText(text,
         bx + (bw - metrics.width) / 2,
-        by + (bh + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2
+        by + (bh + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
       );
 
       // Ticks

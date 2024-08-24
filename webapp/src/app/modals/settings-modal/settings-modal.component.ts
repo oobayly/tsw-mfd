@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, inject } from '@angular/core';
+import { Component, inject, AfterViewInit } from "@angular/core";
 import { FormControl, ReactiveFormsModule, FormGroup, FormBuilder } from "@angular/forms";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
 import { SetttingsService } from "../../core/services/setttings.service";
@@ -16,15 +16,15 @@ interface FormValues {
 }
 
 @Component({
-  selector: 'app-settings-modal',
+  selector: "app-settings-modal",
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule
+    CommonModule, ReactiveFormsModule,
   ],
-  templateUrl: './settings-modal.component.html',
-  styleUrl: './settings-modal.component.scss'
+  templateUrl: "./settings-modal.component.html",
+  styleUrl: "./settings-modal.component.scss",
 })
-export class SettingsModalComponent {
+export class SettingsModalComponent implements AfterViewInit {
   // ========================
   // Injected services
   // ========================
@@ -48,7 +48,7 @@ export class SettingsModalComponent {
   constructor() {
     this.mapBrightness$ = this.form.controls.map.controls.brightness.valueChanges.pipe(
       startWith(this.form.controls.map.controls.brightness.value),
-      map((x) => x * 100)
+      map((x) => x * 100),
     );
   }
 
@@ -80,7 +80,7 @@ export class SettingsModalComponent {
       websocket: fb.group({
         host: fb.control("", { nonNullable: true }),
         port: fb.control<number>(3000, { nonNullable: true }),
-      })
+      }),
     });
   }
 

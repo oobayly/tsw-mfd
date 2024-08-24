@@ -1,4 +1,4 @@
-import { Observable, Subscription } from "rxjs";
+import { Observable } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { DialConfig, DialValue, Rectangle, Size } from "../interfaces";
 import { runSelfTestOverRange } from "../self-test";
@@ -89,7 +89,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
         const width = metrics.width;
         const height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
-        ctx.fillText(text, -width / 2, y + height / 2,);
+        ctx.fillText(text, -width / 2, y + height / 2);
       }
     });
   }
@@ -135,7 +135,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
             ctx.fillStyle = "#c3ea9d";
             ctx.fillText(valueText,
               -metrics.width / 2,
-              (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2
+              (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
             );
 
             ctx.restore();
@@ -155,7 +155,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
         ctx.fillStyle = "#c3ea9d";
         ctx.fillText(units,
           -metrics.width / 2,
-          y + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2
+          y + (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
         );
       }
 
@@ -176,7 +176,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
     });
   }
 
-  public runSelfTest(duration: number, delta: number = 1): Observable<number> {
+  public runSelfTest(duration: number, delta = 1): Observable<number> {
     return runSelfTestOverRange(duration, delta, [0, this.options.limits[1].value, this.options.limits[0].value, 0]);
   }
 }

@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 export interface MfdOptions {
@@ -7,7 +7,7 @@ export interface MfdOptions {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class MfdControlsService {
   // ========================
@@ -23,8 +23,6 @@ export class MfdControlsService {
   // ========================
 
   public readonly isLoaded$ = this.mfd$.pipe(map((x) => !!x));
-
-  constructor() { }
 
   // Run self test on the current MFD
   public runSelfTest(): void {

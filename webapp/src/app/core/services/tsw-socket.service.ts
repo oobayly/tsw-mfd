@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
-import { Socket, SocketIoConfig } from "ngx-socket-io";
-import { BehaviorSubject, distinctUntilChanged, filter, firstValueFrom, map, Observable, shareReplay, switchMap, take, tap } from "rxjs";
+import { Injectable } from "@angular/core";
+import { Socket } from "ngx-socket-io";
+import { distinctUntilChanged, filter, firstValueFrom, map, Observable, shareReplay, switchMap } from "rxjs";
 import { SetttingsService } from "./setttings.service";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class TswSocketService {
   // ========================
@@ -18,7 +18,7 @@ export class TswSocketService {
   // ========================
 
   constructor(
-    readonly settings: SetttingsService
+    readonly settings: SetttingsService,
   ) {
     this.socket$ = settings.watchSetting("websocket").pipe(
       map((settings) => {
@@ -41,7 +41,7 @@ export class TswSocketService {
   public fromEvent<T = unknown>(fromEvent: string) {
     return this.socket$.pipe(
       filter((socket) => !!socket),
-      switchMap((socket) => socket.fromEvent<T>(fromEvent))
+      switchMap((socket) => socket.fromEvent<T>(fromEvent)),
     );
   }
 }

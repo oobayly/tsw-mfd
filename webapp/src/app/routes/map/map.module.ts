@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
 
-import { MapRoutingModule } from './map-routing.module';
+import { MapRoutingModule } from "./map-routing.module";
 
 
 @NgModule({
@@ -9,6 +9,6 @@ import { MapRoutingModule } from './map-routing.module';
   imports: [
     CommonModule,
     MapRoutingModule,
-  ]
+  ],
 })
 export class MapModule { }

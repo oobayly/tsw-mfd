@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 
-import { MfdControlsService } from './mfd-controls.service';
+import { MfdControlsService } from "./mfd-controls.service";
 
-describe('MfdControlsService', () => {
+describe("MfdControlsService", () => {
   let service: MfdControlsService;
 
   beforeEach(() => {
@@ -10,7 +10,7 @@ describe('MfdControlsService', () => {
     service = TestBed.inject(MfdControlsService);
   });
 
-  it('should be created', () => {
+  it("should be created", () => {
     expect(service).toBeTruthy();
   });
 });

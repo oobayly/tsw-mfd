@@ -20,6 +20,10 @@
     },
     "editor.tabSize": 2,
     "editor.detectIndentation": false,
+    "editor.codeActionsOnSave": [
+      "source.organizeImports",
+      "source.fixAll.eslint"
+    ],
     "editor.formatOnSave": true,
     "files.eol": "\n",
     "files.insertFinalNewline": true,

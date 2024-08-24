@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from "@angular/core";
 import { NgxIndexedDBService } from "ngx-indexed-db";
 import { catchError, filter, firstValueFrom, map, Observable, of, startWith, switchMap } from "rxjs";
 
@@ -10,7 +10,7 @@ interface SettingsMap {
 export type SettingsKey = keyof SettingsMap;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class SetttingsService {
   private readonly storeName = "settings";
@@ -25,7 +25,7 @@ export class SetttingsService {
   public getSetting<T extends keyof SettingsMap>(settingName: T): Observable<Partial<SettingsMap[T]> | undefined> {
     return this.db.getByKey<Partial<SettingsMap[T]> & { name: string }>(this.storeName, settingName).pipe(
       map((x) => {
-        const { name, ...value } = x;
+        const { name: _, ...value } = x;
 
         return value as unknown as Partial<SettingsMap[T]>;
       }),
@@ -41,7 +41,7 @@ export class SetttingsService {
     const current = await this.getSettingAsync(settingName);
 
     await firstValueFrom(
-      this.db.update(this.storeName, { ...current, ...value, name: settingName })
+      this.db.update(this.storeName, { ...current, ...value, name: settingName }),
     );
 
     this.settingChange$.next(settingName);

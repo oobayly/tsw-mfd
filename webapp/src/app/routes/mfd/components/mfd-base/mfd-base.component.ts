@@ -1,10 +1,10 @@
-import { AfterViewInit, Component, inject, OnDestroy, OnInit, Signal } from '@angular/core';
+import { AfterViewInit, Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { Subscription } from "rxjs";
-import { Rectangle, Size } from "../../mfd/interfaces";
-import { MfdControlsService, MfdOptions } from "../../../../core/services/mfd-controls.service";
+import { Size } from "../../mfd/interfaces";
+import { MfdControlsService } from "../../../../core/services/mfd-controls.service";
 
 @Component({
-  selector: 'app-mfd-base',
+  selector: "app-mfd-base",
   standalone: true,
   imports: [],
   template: "",

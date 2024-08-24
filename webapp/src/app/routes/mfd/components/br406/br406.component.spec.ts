@@ -1,14 +1,14 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { Br406Component } from './br406.component';
+import { Br406Component } from "./br406.component";
 
-describe('Br406Component', () => {
+describe("Br406Component", () => {
   let component: Br406Component;
   let fixture: ComponentFixture<Br406Component>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Br406Component]
+      imports: [Br406Component],
     })
     .compileComponents();
 
@@ -17,7 +17,7 @@ describe('Br406Component', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });
