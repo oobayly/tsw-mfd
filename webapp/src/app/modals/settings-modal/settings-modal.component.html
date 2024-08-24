@@ -1,0 +1,36 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    <i class="bi-map pe-2"></i>
+    Map Settings
+  </h4>
+  <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  <form [formGroup]="form">
+    <!-- Websocket settings -->
+    <div class="mb-3" formGroupName="websocket">
+      <label>
+        Server host and port
+      </label>
+      <div class="input-group">
+        <input type="text" class="form-control" style="flex-grow: 2;" placeholder="Hostname or IP"
+          formControlName="host" required>
+        <input type="text" inputmode="numeric" class="form-control" placeholder="Port" formControlName="port" required
+          min="1000" max="65535">
+      </div>
+    </div>
+
+    <!-- Map settings -->
+    <div class="mb-3" formGroupName="map">
+      <label>
+        Brightness {{mapBrightness$ | async | number:'1.0-0'}}%
+      </label>
+      <div class="input-group">
+        <input type="range" class="form-range" formControlName="brightness" min=".5" max="1" step=".05">
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-outline-secondary" (click)="onSaveClick()">Save</button>
+</div>

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Socket, SocketIoConfig } from "ngx-socket-io";
-import { BehaviorSubject, filter, firstValueFrom, map, Observable, shareReplay, switchMap } from "rxjs";
+import { BehaviorSubject, distinctUntilChanged, filter, firstValueFrom, map, Observable, shareReplay, switchMap, take, tap } from "rxjs";
+import { SetttingsService } from "./setttings.service";
 
 @Injectable({
   providedIn: 'root'
@@ -10,34 +11,32 @@ export class TswSocketService {
   // Properties
   // ========================
 
-  private readonly config$ = new BehaviorSubject<SocketIoConfig | undefined>(undefined);
+  public readonly socket$: Observable<Socket | undefined>;
 
-  public readonly socket$: Observable<Socket | undefined> = this.config$.pipe(
-    // filter((config): config is SocketIoConfig => !!config),
-    map((config) => config ? new Socket(config) : undefined),
-    shareReplay(1),
-  );
+  // ========================
+  // Lifecycle
+  // ========================
 
-  constructor() {
-    window.setTimeout(() => {
-      this.config$.next({
-        url: "http://localhost:3000"
-      });
-    });
+  constructor(
+    readonly settings: SetttingsService
+  ) {
+    this.socket$ = settings.watchSetting("websocket").pipe(
+      map((settings) => {
+        if (!settings?.host || !settings?.port) {
+          return undefined;
+        }
+
+        return `http://${settings.host}:${settings.port}`;
+      }),
+      distinctUntilChanged(),
+      map((url) => url ? new Socket({ url }) : undefined),
+      shareReplay(1),
+    )
   }
 
   public getSocket(): Promise<Socket | undefined> {
     return firstValueFrom(this.socket$);
   }
-
-  // public async emit(_eventName: string, ..._args: any[]): Promise<any> {
-  //   const socket = this.getSocket();
-
-  //   if (socket)
-  //     socket.
-
-  //   return await socket.emit(_eventName, _args);
-  // }
 
   public fromEvent<T = unknown>(fromEvent: string) {
     return this.socket$.pipe(
@@ -45,10 +44,4 @@ export class TswSocketService {
       switchMap((socket) => socket.fromEvent<T>(fromEvent))
     );
   }
-
-  // public async fromOneTimeEvent<T = unknown>(fromEvent: string): Promise<T> {
-  //   const socket = await firstValueFrom(this.socket$);
-
-  //   return await socket.fromOneTimeEvent<T>(fromEvent);
-  // }
 }

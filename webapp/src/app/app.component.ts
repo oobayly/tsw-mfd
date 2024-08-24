@@ -1,13 +1,11 @@
 import { CommonModule } from "@angular/common";
-import { Component, importProvidersFrom, OnDestroy } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, RouterModule, RouterOutlet, UrlTree } from '@angular/router';
+import { Component, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
-import { BehaviorSubject, filter, flatMap, map, Observable, of, share, startWith, tap } from "rxjs";
-import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
-import { SettingsKey } from "./core/services/setttings.service";
-import { MapSettingsModalComponent } from "./routes/map/components/map-settings-modal/map-settings-modal.component";
-import { Socket } from "ngx-socket-io";
+import { BehaviorSubject, filter, map, Observable, of } from "rxjs";
+import { MfdControlsService } from "./core/services/mfd-controls.service";
 import { TswSocketService } from "./core/services/tsw-socket.service";
+import { SettingsModalComponent } from "./modals/settings-modal/settings-modal.component";
 
 interface LastMfd {
   name: string;
@@ -48,8 +46,6 @@ export class AppComponent implements OnDestroy {
 
   public readonly navRight$: Observable<boolean>;
 
-  public readonly settings$: Observable<SettingsKey | undefined>;
-
   // ========================
   // Lifecycle
   // ========================
@@ -65,7 +61,6 @@ export class AppComponent implements OnDestroy {
     tooltip.triggers = "hover:click";
 
     this.isConnected$ = socket.socket$.pipe(map((x) => !!x));
-    this.settings$ = this.getSettingsKey();
     this.lastMfd$ = this.getLastMdfObservable();
     this.navSide$ = of("left");
 
@@ -107,31 +102,6 @@ export class AppComponent implements OnDestroy {
     );
   }
 
-  public getSettingsKey(): Observable<SettingsKey | undefined> {
-    return this.router.events.pipe(
-      filter((e) => e instanceof NavigationEnd),
-      tap(() => {
-        this.modal.dismissAll();
-      }),
-      startWith(undefined),
-      map(() => {
-        const path: string[] = [];
-
-        for (let snapshot = <ActivatedRouteSnapshot | null>this.route.snapshot.root; !!snapshot; snapshot = snapshot.firstChild) {
-          if (snapshot.routeConfig?.path) {
-            path.push(snapshot.routeConfig.path);
-          }
-        }
-
-        if (path[0] === "map") {
-          return "map";
-        }
-
-        return undefined;
-      }),
-    )
-  }
-
   // ========================
   // Methods
   // ========================
@@ -165,9 +135,7 @@ export class AppComponent implements OnDestroy {
     this.isFullscreen$.next(!!document.fullscreenElement);
   }
 
-  public async onSettingClick(key: SettingsKey): Promise<void> {
-    if (key === "map") {
-      this.modal.open(MapSettingsModalComponent, { centered: true });
-    }
+  public async onSettingClick(): Promise<void> {
+    this.modal.open(SettingsModalComponent, { centered: true });
   }
 }

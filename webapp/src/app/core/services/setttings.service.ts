@@ -4,6 +4,7 @@ import { catchError, filter, firstValueFrom, map, Observable, of, startWith, swi
 
 interface SettingsMap {
   map: { lat: number, lng: number, zoom: number, layers: string[], brightness: number },
+  websocket: { host: string, port: number },
 }
 
 export type SettingsKey = keyof SettingsMap;
