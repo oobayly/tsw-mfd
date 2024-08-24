@@ -2,15 +2,17 @@
   filter: brightness(var(--brightness, 1));
 }
 
+.leaflet-control-button {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  color: rgba(0, 0, 0, 0.7);
+}
+
 ::ng-deep {
   .leaflet-layer {
     &.grayscale {
       filter: grayscale(var(--osm-grayscale, 1));
     }
-  }
-  .leaflet-control-button {
-    width: 44px !important;
-    height: 44px !important;
-    line-height: 44px !important;
   }
 }
