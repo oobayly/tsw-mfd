@@ -20,9 +20,6 @@ export const runSelfTestOverRange = (
     return accum;
   }, 0);
   const ms = 1000 * duration / steps;
-
-  console.log(targets, steps, delta, ms);
-
   let value = targets.shift()!;
 
   return interval(ms).pipe(
