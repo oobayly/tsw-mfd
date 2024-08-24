@@ -1,7 +1,7 @@
 <div class="modal-header">
   <h4 class="modal-title">
-    <i class="bi-map pe-2"></i>
-    Map Settings
+    <i class="bi-gear pe-2"></i>
+    Settings
   </h4>
   <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
 </div>
@@ -10,7 +10,8 @@
     <!-- Websocket settings -->
     <div class="mb-3" formGroupName="websocket">
       <label>
-        Server host and port
+        <i class="bi bi-hdd-network pe-2"></i>
+        Server Host and Port
       </label>
       <div class="input-group">
         <input type="text" class="form-control" style="flex-grow: 2;" placeholder="Hostname or IP"
@@ -23,7 +24,8 @@
     <!-- Map settings -->
     <div class="mb-3" formGroupName="map">
       <label>
-        Brightness {{mapBrightness$ | async | number:'1.0-0'}}%
+        <i class="bi bi-brightness-high pe-2"></i>
+        Map Brightness ({{mapBrightness$ | async | number:'1.0-0'}}%)
       </label>
       <div class="input-group">
         <input type="range" class="form-range" formControlName="brightness" min=".5" max="1" step=".05">
