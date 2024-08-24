@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, importProvidersFrom } from '@angular/core';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router, RouterModule, RouterOutlet, UrlTree } from '@angular/router';
-import { NgbModal, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
+import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
 import { filter, map, Observable, of, share, startWith, tap } from "rxjs";
 import { MfdControlsService, MfdOptions } from "./core/services/mfd-controls.service";
 import { SettingsKey } from "./core/services/setttings.service";
@@ -55,10 +55,13 @@ export class AppComponent {
   constructor(
     public readonly mfdControls: MfdControlsService,
     private readonly modal: NgbModal,
+    readonly tooltip: NgbTooltipConfig,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly socket: TswSocketService,
   ) {
+    tooltip.triggers = "hover:click";
+
     this.isConnected$ = socket.socket$.pipe(map((x) => !!x));
     this.settings$ = this.getSettingsKey();
     this.lastMfd$ = this.getLastMdfObservable();

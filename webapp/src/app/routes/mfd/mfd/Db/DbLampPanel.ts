@@ -1,4 +1,4 @@
-import { delay, first, interval, map, Subscription, takeWhile, timeout, timer } from "rxjs";
+import { delay, first, interval, map, Observable, startWith, Subscription, takeWhile, timeout, timer } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { Alignment, Point, Rectangle, Size } from "../interfaces";
 import { DbLampColourNames, DbLampColours, DbLampNames, DbLamps, getDbLampColour } from "./DbLamps";
@@ -123,7 +123,7 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
   public override renderStatic(ctx: CanvasRenderingContext2D): void {
   }
 
-  public runSelfTest(ms: number, tick: (v: DbLampNames[]) => void, completed: () => void): Subscription {
+  public runSelfTest(duration: number): Observable<DbLampNames[]> {
     const allLamps = this.options.lamps
       .reduce((accum, lamps) => {
         accum.push(...lamps);
@@ -133,10 +133,10 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
       .filter((x): x is DbLampNames => x !== "blank")
       ;
 
-    tick(allLamps);
-
-    return interval(ms).pipe(
+    return interval(duration * 1000).pipe(
       first(),
-    ).subscribe(completed);
+      startWith(undefined),
+      map(() => allLamps)
+    );
   }
 }

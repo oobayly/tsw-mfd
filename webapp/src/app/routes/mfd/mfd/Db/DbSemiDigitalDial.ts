@@ -1,4 +1,4 @@
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { MfdPartBase } from "../MfdPartBase";
 import { DialConfig, DialValue, Rectangle, Size } from "../interfaces";
 import { runSelfTestOverRange } from "../self-test";
@@ -176,11 +176,7 @@ export class DbSemiDigitalDial extends MfdPartBase<DbSemiDigitalDialOptions, Dia
     });
   }
 
-  public runSelfTest(ms: number, delta: number, tick: (v: number) => void, completed: () => void): Subscription {
-    return runSelfTestOverRange(
-      ms, 0, delta, [this.options.limits[1].value, this.options.limits[0].value, 0],
-      tick,
-      completed,
-    );
+  public runSelfTest(duration: number, delta: number = 1): Observable<number> {
+    return runSelfTestOverRange(duration, delta, [0, this.options.limits[1].value, this.options.limits[0].value, 0]);
   }
 }

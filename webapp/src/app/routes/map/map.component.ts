@@ -35,13 +35,14 @@ export class MapComponent implements OnDestroy {
     'OSM': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       id: "osm",
       maxZoom: 18,
-      attribution: this.attributions.osm
+      attribution: this.attributions.osm,
+      className: "baselayer",
     }),
     'OSM Grayscale': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       id: "osm-gray",
       maxZoom: 18,
       attribution: this.attributions.osm,
-      className: "grayscale"
+      className: "baselayer grayscale"
     }),
     "None": tileLayer("", { id: "blank" }),
   }

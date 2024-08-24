@@ -6,8 +6,7 @@ import { radians } from "../../../../core/helpers";
 import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
 import { DbLampPanel } from "../../mfd/Db/DbLampPanel";
 import { DbLampNames } from "../../mfd/Db/DbLamps";
-import { timer } from "rxjs";
-import { runSelfTestOverRange } from "../../mfd/self-test";
+import { concat, finalize, mergeMap, tap } from "rxjs";
 
 interface MfdValues {
   distance?: number;
@@ -130,48 +129,44 @@ export class Br406Component extends MfdBaseComponent {
   }
 
   protected override selfTest(): void {
-    // Power
-    this.subscriptions.push(this.parts.power.runSelfTest(
-      25, 1,
-      (v) => this.values.power = v,
-      () => this.values.power = 0,
-    ));
-    this.subscriptions.push(this.parts.power.runSelfTest(
-      25, 1.5,
-      (v) => this.values.powerTarget = v,
-      () => this.values.powerTarget = undefined,
-    ));
+    this.subscriptions.push(concat(
+      this.parts.power.runSelfTest(5, 1).pipe(
+        tap((v) => this.values.power = v),
+        finalize(() => this.values.power = 0),
+      ),
+      this.parts.power.runSelfTest(5, 1).pipe(
+        tap((v) => this.values.powerTarget = v),
+        finalize(() => this.values.powerTarget = undefined),
+      ),
+    ).subscribe());
 
+    this.subscriptions.push(concat(
+      this.parts.speed.runSelfTest(5).pipe(
+        tap((v) => this.values.speed = v),
+        finalize(() => this.values.speed = 0),
+      ),
+      this.parts.speed.runSelfTest(5).pipe(
+        tap((v) => this.values.speedTarget = v),
+        finalize(() => this.values.speedTarget = undefined),
+      ),
+    ).subscribe());
 
-    // Speed
-    this.subscriptions.push(this.parts.speed.runSelfTest(
-      25, 2,
-      (v) => this.values.speed = v,
-      () => this.values.speed = 0,
-    ));
-    this.subscriptions.push(this.parts.speed.runSelfTest(
-      25, 3,
-      (v) => this.values.speedTarget = v,
-      () => this.values.speedTarget = undefined,
-    ));
-    this.subscriptions.push(this.parts.speed.runSelfTest(
-      25, 2,
-      (v) => this.values.speedLimit = v,
-      () => this.values.speedLimit = undefined,
-    ));
+    // Speed Limit
+    this.subscriptions.push(this.parts.speed.runSelfTest(10).subscribe({
+      next: (v) => this.values.speedLimit = v,
+      complete: () => this.values.speedLimit = undefined,
+    }));
 
-    // LZB
-    this.subscriptions.push(this.parts.lzb.runSelfTest(
-      50,
-      (v) => this.values.distance = v,
-      () => this.values.distance = undefined,
-    ));
+    // LZB distance
+    this.subscriptions.push(this.parts.lzb.runSelfTest(10).subscribe({
+      next: (v) => this.values.distance = v,
+      complete: () => this.values.distance = undefined,
+    }));
 
     // Lamps
-    this.subscriptions.push(this.parts.lamps.runSelfTest(
-      10000,
-      (v) => this.values.lamps = v,
-      () => this.values.lamps = [],
-    ));
+    this.subscriptions.push(this.parts.lamps.runSelfTest(10).subscribe({
+      next: (v) => this.values.lamps = v,
+      complete: () => this.values.lamps = [],
+    }));
   }
 }

@@ -1,7 +1,7 @@
 import { Alignment, Rectangle, Size } from "../interfaces";
 import { getDistanceTicks, LzbDistanceGroup } from "./Lzb";
 import { MfdPartBase } from "../MfdPartBase";
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { runSelfTestOverRange } from "../self-test";
 
 type TapeOptions = {};
@@ -170,11 +170,7 @@ export class DbSemiDigitalTape extends MfdPartBase<TapeOptions, number | undefin
     }, Alignment.Top | Alignment.Left);
   }
 
-  public runSelfTest(ms: number, tick: (v: number) => void, completed: () => void): Subscription {
-    return runSelfTestOverRange(
-      ms, 9900, -50, [0],
-      tick,
-      completed,
-    );
+  public runSelfTest(duration: number): Observable<number> {
+    return runSelfTestOverRange(duration, -50, [9900, 0]);
   }
 }
