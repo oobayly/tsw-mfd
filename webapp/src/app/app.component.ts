@@ -2,9 +2,10 @@ import { CommonModule } from "@angular/common";
 import { Component, OnDestroy } from "@angular/core";
 import { ActivatedRoute, RouterModule } from "@angular/router";
 import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
+import { LatLngLiteral } from "leaflet";
 import { BehaviorSubject, filter, map, Observable, of } from "rxjs";
 import { MfdControlsService } from "./core/services/mfd-controls.service";
-import { TswSocketService } from "./core/services/tsw-socket.service";
+import { AnySocketEvent, TswSocketService } from "./core/services/tsw-socket.service";
 import { SettingsModalComponent } from "./modals/settings-modal/settings-modal.component";
 
 interface LastMfd {
@@ -66,8 +67,20 @@ export class AppComponent implements OnDestroy {
     this.navLeft$ = this.navSide$.pipe(map((x) => x === "left"));
     this.navRight$ = this.navSide$.pipe(map((x) => x === "right"));
 
-    socket.fromEvent("client_id").subscribe((x) => {
-      console.log("client_id", x);
+    socket.fromAny<{ event: "client_id", args: string } | { event: "latlng", args: LatLngLiteral } | AnySocketEvent>("latlng", "client_id").pipe(
+    ).subscribe({
+      next: (e) => {
+        if (e.event === "client_id") {
+          console.log(`Connected with ClientId: ${e.args}`);
+        } else if (e.event === "latlng") {
+          const { lat, lng } = e.args;
+          console.log(`Got new location: lat: ${lat} lng: ${lng}`);
+        } else {
+          const { event, args } = e as unknown as AnySocketEvent;
+          console.log(`Got other event: ${event}`, args);
+        }
+      },
+      complete: () => console.log("completed"),
     });
 
     document.addEventListener("fullscreenchange", this.onFullscreenChange);
