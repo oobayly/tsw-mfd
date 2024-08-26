@@ -52,7 +52,14 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
     };
   }
 
-  public override renderDynamic(ctx: CanvasRenderingContext2D, value: DbLampNames[]): void {
+  private renderLamps(ctx: CanvasRenderingContext2D, lit: false): void;
+  private renderLamps(ctx: CanvasRenderingContext2D, lit: true, litValues: DbLampNames[]): void;
+  private renderLamps(ctx: CanvasRenderingContext2D, lit: boolean, litValues: DbLampNames[] = []): void {
+    // Don't render anything if there are no lit lamps
+    if (lit && !litValues.length) {
+      return;
+    }
+
     this.scaleAndTransform(ctx, (ctx) => {
       const { radius } = this.options;
       const { x: px, y: py } = this.partBounds;
@@ -70,17 +77,19 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
         const cy = py + radius + (j * (2 * radius + dy));
 
         row.forEach((lampName, i) => {
-          const cx = px + radius + (+ i * (2 * radius + dx));
+          if (lit && (lampName === "blank" || !litValues.includes(lampName))) {
+            return;
+          }
 
+          const cx = px + radius + (+ i * (2 * radius + dx));
           const lamp = DbLamps[lampName] ?? DbLamps.blank;
-          const isLit = lampName !== "blank" && value.includes(lampName);
           const bgName = "bg" in lamp ? lamp.bg : "default";
 
           ctx.save();
           ctx.translate(cx, cy);
 
           // Lamp fill
-          ctx.fillStyle = getDbLampColour(bgName, isLit);
+          ctx.fillStyle = getDbLampColour(bgName, lit);
           ctx.fill(circle);
 
           // Lamp label content
@@ -88,7 +97,7 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
             lamp.c.forEach((content) => {
               const fgName = "fg" in content ? content.fg : undefined;
 
-              ctx.fillStyle = getDbLampColour(fgName ?? "default-fg", isLit);
+              ctx.fillStyle = getDbLampColour(fgName ?? "default-fg", lit);
 
               if ("p" in content) {
                 // SVG Path
@@ -119,8 +128,13 @@ export class DbLampPanel extends MfdPartBase<LampOptions, DbLampNames[]> {
     }, Alignment.Top | Alignment.Left);
   }
 
-  public override renderStatic(_ctx: CanvasRenderingContext2D): void {
+  public override renderDynamic(ctx: CanvasRenderingContext2D, value: DbLampNames[]): void {
+    this.renderLamps(ctx, true, value);
+  }
+
+  public override renderStatic(ctx: CanvasRenderingContext2D): void {
     // TODO: Improve static rendering
+    this.renderLamps(ctx, false);
   }
 
   public runSelfTest(duration: number): Observable<DbLampNames[]> {
