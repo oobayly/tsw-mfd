@@ -10,15 +10,31 @@ import { Size } from "../../mfd/interfaces";
   template: "",
 })
 export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnInit {
+  // ========================
+  // Injected services
+  // ========================
+
   private readonly mfdService = inject(MfdControlsService);
+
+  // ========================
+  // Abstract properties
+  // ========================
 
   protected abstract mfdName: string;
 
   protected abstract size: Size;
 
+  // ========================
+  // Properties
+  // ========================
+
   private animationFrameId?: number;
 
   protected readonly subscriptions: Subscription[] = [];
+
+  // ========================
+  // Life cycle
+  // ========================
 
   constructor(
   ) {
@@ -63,6 +79,10 @@ export abstract class MfdBaseComponent implements AfterViewInit, OnDestroy, OnIn
   ngOnInit(): void {
     this.onInit?.();
   }
+
+  // ========================
+  // Abstract methods
+  // ========================
 
   protected abstract animate(ts: number): void;
 
