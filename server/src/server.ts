@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
   res.send('Hello, TypeScript + Node.js + Express!');
 });
 
-const state: { location?: { lat: number, lng: number } } = {};
+const state: { location?: [number, number] } = { location: [50.95, 6.95] };
 
 io.on("connection", (socket) => {
   const id = v4();
@@ -33,7 +33,7 @@ io.on("connection", (socket) => {
   socket.emit("client_id", id);
 
   if (state.location) {
-    io.emit("latlng", state.location);
+    socket.emit("latlng", state.location);
   }
 
   socket.on("latlng", () => {
@@ -90,8 +90,8 @@ const readCommands = async (): Promise<void> => {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[3]);
 
-      state.location = { lat, lng };
-      io.emit("latlng", { lat, lng });
+      state.location = [lat, lng];
+      io.emit("latlng", [lat, lng]);
     }
 
     // console.log(resp);

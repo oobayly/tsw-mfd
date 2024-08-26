@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { Control, latLng, LatLngLiteral, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
+import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
 import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subscription, timeout } from "rxjs";
 import { SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
@@ -70,7 +70,7 @@ export class MapComponent implements OnDestroy {
 
   public readonly brightness$: Observable<number>;
 
-  public readonly location$: Observable<LatLngLiteral>;
+  public readonly location$: Observable<LatLngTuple>;
 
   public readonly options$: Observable<MapOptions>;
 
@@ -122,7 +122,7 @@ export class MapComponent implements OnDestroy {
       }),
     );
 
-    this.location$ = socket.fromEvent<LatLngLiteral>("latlng").pipe(
+    this.location$ = socket.fromEvent<LatLngTuple>("latlng").pipe(
       shareReplay(1),
     );
   }
