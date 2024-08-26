@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { Subscription } from "rxjs";
-import { Size } from "../../mfd/interfaces";
 import { MfdControlsService } from "../../../../core/services/mfd-controls.service";
+import { Size } from "../../mfd/interfaces";
 
 @Component({
   selector: "app-mfd-base",

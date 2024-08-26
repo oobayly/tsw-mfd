@@ -2,8 +2,8 @@ import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } fr
 import { provideRouter } from "@angular/router";
 import { NgxIndexedDBModule } from "ngx-indexed-db";
 
-import { routes } from "./app.routes";
 import { indexedDbConfig } from "./app.indexed-db";
+import { routes } from "./app.routes";
 
 export const appConfig: ApplicationConfig = {
   providers: [

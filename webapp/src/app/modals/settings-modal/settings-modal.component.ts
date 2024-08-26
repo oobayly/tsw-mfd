@@ -1,9 +1,9 @@
 import { CommonModule } from "@angular/common";
-import { Component, inject, AfterViewInit } from "@angular/core";
-import { FormControl, ReactiveFormsModule, FormGroup, FormBuilder } from "@angular/forms";
+import { AfterViewInit, Component, inject } from "@angular/core";
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgbActiveModal } from "@ng-bootstrap/ng-bootstrap";
-import { SetttingsService } from "../../core/services/setttings.service";
 import { map, Observable, startWith } from "rxjs";
+import { SetttingsService } from "../../core/services/setttings.service";
 
 interface FormValues {
   websocket: FormGroup<{

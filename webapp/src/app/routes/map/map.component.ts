@@ -1,10 +1,10 @@
-import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
+import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { Control, latLng, LatLngLiteral, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
-import { SetttingsService } from "../../core/services/setttings.service";
 import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subscription, timeout } from "rxjs";
-import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule } from "@angular/forms";
+import { SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
 
 @Component({
@@ -88,7 +88,6 @@ export class MapComponent implements OnDestroy {
   constructor(
     private readonly settings: SetttingsService,
     private readonly socket: TswSocketService,
-    private readonly viewContainerRef: ViewContainerRef,
   ) {
     const settings$ = this.settings.watchSetting("map").pipe(shareReplay(1));
 

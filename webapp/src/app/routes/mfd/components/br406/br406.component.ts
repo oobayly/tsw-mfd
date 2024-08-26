@@ -1,12 +1,12 @@
 import { Component, ElementRef, ViewChild } from "@angular/core";
-import { MfdBaseComponent } from "../mfd-base/mfd-base.component";
-import { DbSemiDigitalDial } from "../../mfd/Db/DbSemiDigitalDial";
-import { Size } from "../../mfd/interfaces";
+import { concat, finalize, tap } from "rxjs";
 import { radians } from "../../../../core/helpers";
-import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
 import { DbLampPanel } from "../../mfd/Db/DbLampPanel";
 import { DbLampNames } from "../../mfd/Db/DbLamps";
-import { concat, finalize, tap } from "rxjs";
+import { DbSemiDigitalDial } from "../../mfd/Db/DbSemiDigitalDial";
+import { DbSemiDigitalTape } from "../../mfd/Db/DbSemiDigitalTape";
+import { Size } from "../../mfd/interfaces";
+import { MfdBaseComponent } from "../mfd-base/mfd-base.component";
 
 interface MfdValues {
   distance?: number;

@@ -10,7 +10,7 @@ describe("Br406Component", () => {
     await TestBed.configureTestingModule({
       imports: [Br406Component],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(Br406Component);
     component = fixture.componentInstance;

@@ -10,7 +10,7 @@ describe("SettingsModalComponent", () => {
     await TestBed.configureTestingModule({
       imports: [SettingsModalComponent],
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(SettingsModalComponent);
     component = fixture.componentInstance;

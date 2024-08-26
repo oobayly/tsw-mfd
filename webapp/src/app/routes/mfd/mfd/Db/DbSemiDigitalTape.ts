@@ -1,8 +1,8 @@
-import { Alignment, Rectangle, Size } from "../interfaces";
-import { getDistanceTicks, LzbDistanceGroup } from "./Lzb";
-import { MfdPartBase } from "../MfdPartBase";
 import { Observable } from "rxjs";
+import { Alignment, Rectangle, Size } from "../interfaces";
+import { MfdPartBase } from "../MfdPartBase";
 import { runSelfTestOverRange } from "../self-test";
+import { getDistanceTicks, LzbDistanceGroup } from "./Lzb";
 
 /** Represents a distance tape as used on the DB ICE3 */
 export class DbSemiDigitalTape extends MfdPartBase<null, number | undefined> {
