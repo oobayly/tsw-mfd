@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { distinctUntilChanged, filter, firstValueFrom, map, Observable, Observer, of, retry, shareReplay, switchMap, tap, timeout } from "rxjs";
+import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, firstValueFrom, map, Observable, Observer, of, retry, shareReplay, switchMap, tap, timeout } from "rxjs";
 import { SetttingsService } from "./setttings.service";
 
 export interface SocketEvent<TArgs = unknown, TEvent extends string = string> {
@@ -51,7 +51,7 @@ export class TswSocketService {
   constructor(
     readonly settings: SetttingsService,
   ) {
-    this.socket$ = settings.watchSetting("websocket").pipe(
+    const uri$ = settings.watchSetting("websocket").pipe(
       map((settings) => {
         if (!settings?.host || !settings?.port) {
           return undefined;
@@ -60,7 +60,11 @@ export class TswSocketService {
         return `ws://${settings.host}:${settings.port}`;
       }),
       distinctUntilChanged(),
-      switchMap((uri) => {
+    );
+    const retry$ = new BehaviorSubject<void>(undefined);
+
+    this.socket$ = combineLatest([uri$, retry$]).pipe(
+      switchMap(([uri]) => {
         if (!uri) {
           return of(undefined);
         }
@@ -84,6 +88,9 @@ export class TswSocketService {
             if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
               socket.close();
             }
+
+            // When the socket closes, immediately retry
+            retry$.next();
           }
         });
       }),
@@ -92,7 +99,7 @@ export class TswSocketService {
         delay: 1000,
       }),
       shareReplay(1),
-    )
+    );
   }
 
   public getSocket(): Promise<WebSocket | undefined> {
@@ -102,7 +109,7 @@ export class TswSocketService {
   public async emit(event: string, ...args: unknown[]): Promise<void> {
     const socket = await this.getSocket();
 
-    if (!socket) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
       throw new Error("Socket is not connected.");
     }
 
