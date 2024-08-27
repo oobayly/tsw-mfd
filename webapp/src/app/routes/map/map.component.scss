@@ -15,4 +15,7 @@
       filter: grayscale(var(--osm-grayscale, 1));
     }
   }
+  .leaflet-control-scale-line {
+    background: rgba(255, 255, 255, 0);
+  }
 }
