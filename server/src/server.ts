@@ -141,7 +141,7 @@ const readCommands = async (): Promise<void> => {
 
       state.simulate.location = {
         points: result,
-        timerId: setInterval(simulateLatLng, 1000),
+        timerId: setInterval(simulateLatLng, 125),
       };
     } else if (resp === "clients") {
       [...wss.clients].forEach((ws, index) => {
