@@ -2,7 +2,6 @@ import { CommonModule } from "@angular/common";
 import { Component, OnDestroy } from "@angular/core";
 import { ActivatedRoute, RouterModule } from "@angular/router";
 import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-bootstrap";
-import { LatLngTuple } from "leaflet";
 import { BehaviorSubject, filter, map, Observable, of } from "rxjs";
 import { MfdControlsService } from "./core/services/mfd-controls.service";
 import { SocketEvent, TswSocketService } from "./core/services/tsw-socket.service";
@@ -67,7 +66,7 @@ export class AppComponent implements OnDestroy {
     this.navLeft$ = this.navSide$.pipe(map((x) => x === "left"));
     this.navRight$ = this.navSide$.pipe(map((x) => x === "right"));
 
-    socket.fromAny<{ event: "client_id", args: string } | { event: "latlng", args: LatLngTuple }>("latlng", "client_id").pipe(
+    socket.fromAny<{ event: "client_id", args: string }>("client_id").pipe(
     ).subscribe({
       next: (e) => {
         if (e.event === "client_id") {

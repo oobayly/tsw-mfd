@@ -2,17 +2,15 @@ import readline from "readline/promises";
 import { format } from "util";
 import { v4 } from "uuid";
 import { RawData, Server, WebSocket, WebSocketServer } from "ws";
+import { result } from "./simulate";
 
 interface ServerState {
   location?: [number, number];
   simulate?: {
-    location?: {
+    location?: Readonly<{
       timerId: NodeJS.Timeout;
-      from: [number, number];
-      to: [number, number];
-      steps: number;
-      step: number;
-    }
+      points: [number, number][];
+    }>;
   }
 }
 
@@ -101,19 +99,15 @@ const simulateLatLng = () => {
     return;
   }
 
-  state.simulate.location.step++;
-  const { timerId, from, to, step, steps } = state.simulate.location;
+  const next = state.simulate.location.points.shift();
 
-  if (step === steps) {
-    clearInterval(timerId);
+  if (!next) {
+    clearInterval(state.simulate.location.timerId);
     delete state.simulate?.location;
     return;
   }
 
-  const [lat0, lng0] = from;
-  const [lat1, lng1] = to;
-  const lat = lat0 + (lat1 - lat0) / step;
-  const lng = lng0 + (lng1 - lng0) / step;
+  const [lat, lng] = next;
 
   state.location = [lat, lng];
 
@@ -135,7 +129,7 @@ const readCommands = async (): Promise<void> => {
       state.location = [lat, lng];
 
       sendMessage(wss, "latlng", lat, lng);
-    } else if (match = resp.match(/^latlng (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?)$/i)) {
+    } else if (match = resp.match(/^latlng simulate/i)) {
       if (state.simulate?.location?.timerId) {
         clearInterval(state.simulate.location.timerId);
         delete state.simulate.location;
@@ -146,10 +140,7 @@ const readCommands = async (): Promise<void> => {
       }
 
       state.simulate.location = {
-        from: [parseFloat(match[1]), parseFloat(match[3])],
-        to: [parseFloat(match[5]), parseFloat(match[5])],
-        steps: 100,
-        step: 0,
+        points: result,
         timerId: setInterval(simulateLatLng, 1000),
       };
     } else if (resp === "clients") {
