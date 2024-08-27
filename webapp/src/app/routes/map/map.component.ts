@@ -198,6 +198,14 @@ export class MapComponent implements OnDestroy {
   public onMapReady(e: Map): void {
     this.leaflet = e;
 
+    const scale = new Control.Scale({
+      maxWidth: 400,
+      imperial: false,
+      position: "bottomright",
+      updateWhenIdle: true,
+    });
+    scale.addTo(this.leaflet);
+
     this.leaflet.addEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet.addEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet.addEventListener("baselayerchange", this.onBaseLayerChange);
