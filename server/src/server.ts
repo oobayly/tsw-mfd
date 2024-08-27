@@ -1,16 +1,17 @@
 import readline from "readline/promises";
+import { format } from "util";
 import { v4 } from "uuid";
 import { RawData, Server, WebSocket, WebSocketServer } from "ws";
 
 const state: { location?: [number, number] } = { location: [50.95, 6.95] };
 
 const wss = new WebSocketServer({ port: 3000 });
-const clients = new Map<string, WebSocket>();
+const clients = new Map<string, { ws: WebSocket, remoteAddress?: string }>();
 
 wss.on("connection", (ws, req) => {
   const id = v4();
 
-  clients.set(id, ws);
+  clients.set(id, { ws, remoteAddress: req.socket.remoteAddress });
   console.log(`${id}: Connection from ${req.socket.remoteAddress}`);
 
   sendMessage(ws, "client_id", id);
@@ -94,6 +95,14 @@ const readCommands = async (): Promise<void> => {
       state.location = [lat, lng];
 
       sendMessage(wss, "latlng", lat, lng);
+    } else if (resp === "clients") {
+      [...wss.clients].forEach((ws, index) => {
+        const client = [...clients.entries()].find(([_, value]) => value.ws === ws);
+        const id = client?.[0] ?? "-";
+        const remoteAddress = client?.[1].remoteAddress ?? "-";
+
+        console.log(format("%s: %s %i %s", index.toFixed().padStart(2, " "), id, ws.readyState, remoteAddress));
+      })
     }
   }
 }
