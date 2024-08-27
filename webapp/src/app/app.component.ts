@@ -5,7 +5,7 @@ import { NgbModal, NgbTooltipConfig, NgbTooltipModule } from "@ng-bootstrap/ng-b
 import { LatLngTuple } from "leaflet";
 import { BehaviorSubject, filter, map, Observable, of } from "rxjs";
 import { MfdControlsService } from "./core/services/mfd-controls.service";
-import { AnySocketEvent, TswSocketService } from "./core/services/tsw-socket.service";
+import { SocketEvent, TswSocketService } from "./core/services/tsw-socket.service";
 import { SettingsModalComponent } from "./modals/settings-modal/settings-modal.component";
 
 interface LastMfd {
@@ -76,7 +76,7 @@ export class AppComponent implements OnDestroy {
           const [lat, lng] = e.args;
           console.log(`Got new location: lat: ${lat} lng: ${lng}`);
         } else {
-          const { event, args } = e as unknown as AnySocketEvent;
+          const { event, args } = e as unknown as SocketEvent;
           console.log(`Got other event: ${event}`, args);
         }
       },

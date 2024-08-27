@@ -173,11 +173,10 @@ export class MapComponent implements OnDestroy {
     void this.updateSettings();
   }
 
-
   public async onLocationClick(e: Event): Promise<void> {
     e.preventDefault();
 
-    (await this.socket.getSocket())?.emit("latlng");
+    (await this.socket.emit("latlng?"));
 
     this.location$.pipe(
       timeout(50),

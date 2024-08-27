@@ -1,82 +1,83 @@
-// Import the 'express' module
-import express from 'express';
-import http from "http";
 import readline from "readline/promises";
-import { Server } from "socket.io";
 import { v4 } from "uuid";
-
-// Create an Express application
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
-// Set the port number for the server
-const port = 3000;
-
-// Define a route for the root path ('/')
-app.get('/', (req, res) => {
-  // Send a response to the client
-  res.send('Hello, TypeScript + Node.js + Express!');
-});
+import { RawData, Server, WebSocket, WebSocketServer } from "ws";
 
 const state: { location?: [number, number] } = { location: [50.95, 6.95] };
 
-io.on("connection", (socket) => {
-  const id = v4();
-  console.log(`${id}: connected`);
+const wss = new WebSocketServer({ port: 3000 });
+const clients = new Map<string, WebSocket>();
 
-  socket.emit("client_id", id);
+wss.on("connection", (ws, req) => {
+  const id = v4();
+
+  clients.set(id, ws);
+  console.log(`${id}: Connection from ${req.socket.remoteAddress}`);
+
+  sendMessage(ws, "client_id", id);
 
   if (state.location) {
-    socket.emit("latlng", state.location);
+    sendMessage(ws, "latlng", ...state.location);
   }
 
-  socket.on("latlng", () => {
-    if (state.location) {
-      socket.emit("latlng", state.location);
+  ws.on("error", (e) => {
+    console.log(`${id}: Socket Error`, e);
+    clients.delete(id);
+  });
+  ws.on("close", (code, reason) => {
+    console.log(`${id}: Closed with ${code}: ${reason}`);
+    clients.delete(id);
+  });
+
+  ws.on("message", (data, isBinary) => handleMessage(ws, id, data, isBinary));
+});
+
+const handleMessage = (ws: WebSocket, id: string, data: RawData, isBinary: boolean) => {
+  console.log(`${id}: Received ${isBinary ? "binary" : "text"} message`, data.toString());
+
+  let event: string;
+  let args: any[];
+
+  if (isBinary) {
+    // Binary data is not used
+    return;
+  } else {
+    try {
+      const parsed = JSON.parse(data.toString()) as any[];
+      ([event, ...args] = parsed);
+
+    } catch (e) {
+      console.log(`Received malformed data: ${e}`);
+
+      return;
     }
-  })
+  }
 
-  socket.on("echo", (values) => {
-    console.log(`${id}: requested echo`);
+  switch (event) {
+    case "latlng?":
+      if (state.location) {
+        sendMessage(ws, "latlng", ...state.location);
+      }
+  }
 
-    socket.emit("echo", values);
-  });
+}
 
-  socket.on("now", () => {
-    console.log(`${id}: requested now`);
+const sendMessage = (target: Server | WebSocket, event: string, ...args: any[]): void => {
+  const message = JSON.stringify([event, ...args]);
 
-    socket.emit("now", Date.now());
-  });
+  const send = (ws: WebSocket) => {
+    ws.send(message, { binary: false }, (e) => {
+      if (e) {
+        console.log(`Couldn't send message to client: ${e?.name ?? 'Unknown'}: ${e?.message}`);
+      }
+    });
+  }
 
-  socket.on("disconnect", () => {
-    console.log(`${id}: disconnect`);
-  });
-});
-
-// let last = Date.now();
-
-// setInterval(() => {
-//   io.emit("now", Date.now());
-
-//   // const now = Date.now();
-//   // const dT = now - last;
-
-//   // console.log(`emit: ${dT} ms`);
-
-//   // last = now;
-// }, 40);
-
-// Start the server and listen on the specified port
-server.listen(port, () => {
-  // Log a message when the server is successfully running
-  console.log(`Server is running on http://localhost:${port}`);
-});
+  if ("clients" in target) {
+    target.clients.forEach((ws) => send(ws));
+  } else {
+    send(target);
+  }
+}
 
 const rl = readline.createInterface({ input: process.stdin });
 
@@ -91,10 +92,9 @@ const readCommands = async (): Promise<void> => {
       const lng = parseFloat(match[3]);
 
       state.location = [lat, lng];
-      io.emit("latlng", [lat, lng]);
-    }
 
-    // console.log(resp);
+      sendMessage(wss, "latlng", lat, lng);
+    }
   }
 }
 
