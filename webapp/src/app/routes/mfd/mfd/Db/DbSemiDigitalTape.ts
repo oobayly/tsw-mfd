@@ -45,18 +45,20 @@ export class DbSemiDigitalTape extends MfdPartBase<null, number | undefined> {
     const rounded = Math.min(Math.floor(value / 100) * 100, 9900);
 
     this.scaleAndTransform(ctx, (ctx) => {
-      // Draw the distance
-      ctx.fillStyle = "#d4ec4d";
-      ctx.font = "22px SevenSeg";
+      // The distance digits are only visible when the ticks bar is full
+      if (value > 4000) {
+        ctx.fillStyle = "#d4ec4d";
+        ctx.font = "22px SevenSeg";
 
-      const { x: bx, y: by, width: bw, height: bh } = this.numbersBounds;
-      const text = `${rounded}`.padStart(4, "0");
-      const metrics = ctx.measureText(text);
+        const { x: bx, y: by, width: bw, height: bh } = this.numbersBounds;
+        const text = `${rounded}`.padStart(4, "0");
+        const metrics = ctx.measureText(text);
 
-      ctx.fillText(text,
-        bx + (bw - metrics.width) / 2,
-        by + (bh + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
-      );
+        ctx.fillText(text,
+          bx + (bw - metrics.width) / 2,
+          by + (bh + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) / 2,
+        );
+      }
 
       // Ticks
       const { pxPerTick } = this;
