@@ -3,7 +3,22 @@ import { format } from "util";
 import { v4 } from "uuid";
 import { RawData, Server, WebSocket, WebSocketServer } from "ws";
 
-const state: { location?: [number, number] } = { location: [50.95, 6.95] };
+interface ServerState {
+  location?: [number, number];
+  simulate?: {
+    location?: {
+      timerId: NodeJS.Timeout;
+      from: [number, number];
+      to: [number, number];
+      steps: number;
+      step: number;
+    }
+  }
+}
+
+const state: ServerState = {
+  location: [50.95, 6.95]
+};
 
 const wss = new WebSocketServer({ port: 3000 });
 const clients = new Map<string, { ws: WebSocket, remoteAddress?: string }>();
@@ -80,6 +95,31 @@ const sendMessage = (target: Server | WebSocket, event: string, ...args: any[]):
   }
 }
 
+const simulateLatLng = () => {
+  if (!state.simulate?.location?.timerId) {
+    delete state.simulate?.location;
+    return;
+  }
+
+  state.simulate.location.step++;
+  const { timerId, from, to, step, steps } = state.simulate.location;
+
+  if (step === steps) {
+    clearInterval(timerId);
+    delete state.simulate?.location;
+    return;
+  }
+
+  const [lat0, lng0] = from;
+  const [lat1, lng1] = to;
+  const lat = lat0 + (lat1 - lat0) / step;
+  const lng = lng0 + (lng1 - lng0) / step;
+
+  state.location = [lat, lng];
+
+  sendMessage(wss, "latlng", lat, lng);
+};
+
 const rl = readline.createInterface({ input: process.stdin });
 
 const readCommands = async (): Promise<void> => {
@@ -88,13 +128,30 @@ const readCommands = async (): Promise<void> => {
 
     let match: RegExpMatchArray | null;
 
-    if (match = resp.match(/latlng (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?)/i)) {
+    if (match = resp.match(/^latlng (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?)$/i)) {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[3]);
 
       state.location = [lat, lng];
 
       sendMessage(wss, "latlng", lat, lng);
+    } else if (match = resp.match(/^latlng (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?)$/i)) {
+      if (state.simulate?.location?.timerId) {
+        clearInterval(state.simulate.location.timerId);
+        delete state.simulate.location;
+      }
+
+      if (!state.simulate) {
+        state.simulate = {};
+      }
+
+      state.simulate.location = {
+        from: [parseFloat(match[1]), parseFloat(match[3])],
+        to: [parseFloat(match[5]), parseFloat(match[5])],
+        steps: 100,
+        step: 0,
+        timerId: setInterval(simulateLatLng, 1000),
+      };
     } else if (resp === "clients") {
       [...wss.clients].forEach((ws, index) => {
         const client = [...clients.entries()].find(([_, value]) => value.ws === ws);
