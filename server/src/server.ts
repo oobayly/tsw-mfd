@@ -1,11 +1,12 @@
 import readline from "readline/promises";
+import { BehaviorSubject, distinctUntilChanged, map } from "rxjs";
 import { format } from "util";
 import { v4 } from "uuid";
 import { RawData, Server, WebSocket, WebSocketServer } from "ws";
 import { interpolateKolnAachen } from "./simulate";
 
 interface ServerState {
-  location?: [number, number];
+  readonly location$: BehaviorSubject<[number, number]>,
   simulate?: {
     location?: Readonly<{
       timerId: NodeJS.Timeout;
@@ -15,7 +16,7 @@ interface ServerState {
 }
 
 const state: ServerState = {
-  location: [50.95, 6.95]
+  location$: new BehaviorSubject([50.95, 6.95]),
 };
 
 const wss = new WebSocketServer({ port: 3000 });
@@ -28,10 +29,6 @@ wss.on("connection", (ws, req) => {
   console.log(`${id}: Connection from ${req.socket.remoteAddress}`);
 
   sendMessage(ws, "client_id", id);
-
-  if (state.location) {
-    sendLocation(ws, ...state.location);
-  }
 
   ws.on("error", (e) => {
     console.log(`${id}: Socket Error`, e);
@@ -68,11 +65,14 @@ const handleMessage = (ws: WebSocket, id: string, data: RawData, isBinary: boole
 
   switch (event) {
     case "latlng?":
-      if (state.location) {
-        sendLocation(ws, ...state.location);
+      sendLocation(ws, ...state.location$.value);
+      break;
+    case "latlng":
+      if (typeof args[0] === "number" && typeof args[1] === "number") {
+        state.location$.next([args[0], args[1]]);
       }
+      break;
   }
-
 }
 
 const sendLocation = (target: Server | WebSocket, lat: number, lng: number): void => {
@@ -111,11 +111,7 @@ const simulateLatLng = () => {
     return;
   }
 
-  const [lat, lng] = next;
-
-  state.location = [lat, lng];
-
-  sendLocation(wss, ...state.location);
+  state.location$.next(next);
 };
 
 const rl = readline.createInterface({ input: process.stdin });
@@ -127,27 +123,37 @@ const readCommands = async (): Promise<void> => {
     let match: RegExpMatchArray | null;
 
     if (match = resp.match(/^latlng (-?[0-9]+(\.[0-9]+)?) (-?[0-9]+(\.[0-9]+)?)$/i)) {
+      // latlng <lat> <lng>
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[3]);
 
-      state.location = [lat, lng];
+      console.log(`Setting location to ${lat}, ${lng}`);
 
-      sendLocation(wss, lat, lng);
-    } else if (match = resp.match(/^latlng simulate( ([0-9]+))?/i)) {
-      const speed = match[2] ? parseInt(match[2]) : 160;
-
+      state.location$.next([lat, lng]);
+    } else if (match = resp.match(/^latlng simulate( (stop|[0-9]+))?( ([.0-9]+))?/i)) {
+      // latlng simulate stop
+      // latlng simulate [kmph = 360]? [precision = 1]?
       if (state.simulate?.location?.timerId) {
         clearInterval(state.simulate.location.timerId);
         delete state.simulate.location;
       }
 
+      if (match[2] === "stop") {
+        return;
+      }
+
+      const speed = match[2] ? parseInt(match[2]) : 160;
+      const stepsPerSec = match[4] ? parseFloat(match[4]) : 1;
+
       if (!state.simulate) {
         state.simulate = {};
       }
 
+      console.log(`Simulating location at ${speed} km/h at ${stepsPerSec} steps per second.`);
+
       state.simulate.location = {
-        points: interpolateKolnAachen(speed),
-        timerId: setInterval(simulateLatLng, 125),
+        points: interpolateKolnAachen(speed / stepsPerSec), // Factor of 8 to improve smoothness
+        timerId: setInterval(simulateLatLng, 1000 / stepsPerSec),
       };
     } else if (resp === "clients") {
       [...wss.clients].forEach((ws, index) => {
@@ -160,5 +166,17 @@ const readCommands = async (): Promise<void> => {
     }
   }
 }
+
+// Send the locations, truncated to the specified precision
+state.location$.pipe(
+  map(([lat, lng]) => {
+    const precision = 1e5;
+
+    return [Math.round(lat * precision) / precision, Math.round(lng * precision) / precision];
+  }),
+  distinctUntilChanged((p, c) => p[0] === c[0] && p[1] === c[1]),
+).subscribe(([lat, lng]) => {
+  sendLocation(wss, lat, lng);
+})
 
 readCommands().then();
