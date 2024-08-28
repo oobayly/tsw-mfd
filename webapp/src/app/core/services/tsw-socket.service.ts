@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, distinctUntilChanged, filter, firstValueFrom, map, Observable, Observer, of, retry, shareReplay, switchMap, tap, timeout } from "rxjs";
+import { Injectable, OnDestroy } from "@angular/core";
+import { BehaviorSubject, catchError, combineLatest, distinctUntilChanged, filter, firstValueFrom, map, Observable, Observer, of, repeat, shareReplay, Subject, switchMap, takeUntil, tap, timeout } from "rxjs";
 import { SetttingsService } from "./setttings.service";
 
 export interface SocketEvent<TArgs = unknown, TEvent extends string = string> {
@@ -37,12 +37,22 @@ function handleSocketMessage(e: MessageEvent): SocketEvent | undefined {
 @Injectable({
   providedIn: "root",
 })
-export class TswSocketService {
+export class TswSocketService implements OnDestroy {
   // ========================
   // Properties
   // ========================
 
+  private readonly retryInterval = 1000;
+
+  // ========================
+  // Observables
+  // ========================
+
+  private readonly destroy$ = new Subject<void>();
+
   public readonly socket$: Observable<WebSocket | undefined>;
+
+  public readonly isConnected$: Observable<boolean>;
 
   // ========================
   // Lifecycle
@@ -51,7 +61,8 @@ export class TswSocketService {
   constructor(
     readonly settings: SetttingsService,
   ) {
-    const uri$ = settings.watchSetting("websocket").pipe(
+    const retry$ = new BehaviorSubject<void>(undefined);
+    const host$ = settings.watchSetting("websocket").pipe(
       map((settings) => {
         if (!settings?.host || !settings?.port) {
           return undefined;
@@ -61,9 +72,8 @@ export class TswSocketService {
       }),
       distinctUntilChanged(),
     );
-    const retry$ = new BehaviorSubject<void>(undefined);
 
-    this.socket$ = combineLatest([uri$, retry$]).pipe(
+    this.socket$ = combineLatest([host$, retry$]).pipe(
       switchMap(([uri]) => {
         if (!uri) {
           return of(undefined);
@@ -94,12 +104,22 @@ export class TswSocketService {
           }
         });
       }),
-      retry({
+      catchError(() => of(undefined)),
+      distinctUntilChanged(),
+      repeat({
         count: Infinity,
-        delay: 1000,
+        delay: this.retryInterval,
       }),
+      takeUntil(this.destroy$),
       shareReplay(1),
     );
+
+    this.isConnected$ = this.socket$.pipe(map((socket) => socket?.readyState === WebSocket.OPEN));
+
+    return;
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next();
   }
 
   public getSocket(): Promise<WebSocket | undefined> {

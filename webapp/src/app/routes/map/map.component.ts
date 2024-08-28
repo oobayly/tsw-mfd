@@ -3,7 +3,7 @@ import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
-import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subscription, timeout } from "rxjs";
+import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subject, Subscription, takeUntil, timeout } from "rxjs";
 import { SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
 
@@ -74,6 +74,8 @@ export class MapComponent implements OnDestroy {
 
   public readonly options$: Observable<MapOptions>;
 
+  private readonly destroy$ = new Subject<void>();
+
   // ========================
   // View children
   // ========================
@@ -89,7 +91,10 @@ export class MapComponent implements OnDestroy {
     private readonly settings: SetttingsService,
     private readonly socket: TswSocketService,
   ) {
-    const settings$ = this.settings.watchSetting("map").pipe(shareReplay(1));
+    const settings$ = this.settings.watchSetting("map").pipe(
+      takeUntil(this.destroy$),
+      shareReplay(1),
+    );
 
     this.brightness$ = settings$.pipe(
       map((x) => x?.brightness ?? 1),
@@ -123,11 +128,13 @@ export class MapComponent implements OnDestroy {
     );
 
     this.location$ = socket.fromEvent<LatLngTuple>("latlng").pipe(
+      takeUntil(this.destroy$),
       shareReplay(1),
     );
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
     this.subscriptions.forEach((s) => s.unsubscribe());
 
     this.leaflet?.removeEventListener("overlayadd", this.onOverlayAdd);
@@ -176,7 +183,12 @@ export class MapComponent implements OnDestroy {
   public async onLocationClick(e: Event): Promise<void> {
     e.preventDefault();
 
-    (await this.socket.emit("latlng?"));
+    try {
+      (await this.socket.emit("latlng?"));
+    } catch {
+      // 
+      return;
+    }
 
     this.location$.pipe(
       timeout(50),

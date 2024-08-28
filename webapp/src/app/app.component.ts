@@ -59,7 +59,7 @@ export class AppComponent implements OnDestroy {
   ) {
     tooltip.triggers = "hover";
 
-    this.isConnected$ = socket.socket$.pipe(map((x) => !!x));
+    this.isConnected$ = socket.isConnected$;
     this.lastMfd$ = this.getLastMdfObservable();
     this.navSide$ = of("left");
 

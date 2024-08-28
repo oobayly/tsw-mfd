@@ -93,9 +93,7 @@ export class SettingsModalComponent implements AfterViewInit {
       await this.settingsService.patchSetting("map", this.form.controls.map.value);
     }
 
-    if (this.form.controls.websocket.valid) {
-      await this.settingsService.patchSetting("websocket", this.form.controls.websocket.value);
-    }
+    await this.settingsService.patchSetting("websocket", this.form.controls.websocket.value);
 
     this.activeModal.close();
   }

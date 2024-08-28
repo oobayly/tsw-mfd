@@ -9,8 +9,12 @@
         </a>
       </li>
       <li class="nav-item" ngbTooltip="Map" placement="right" container="body">
-        <a routerLink="/map" class="nav-link" routerLinkActive="active">
+        <a routerLink="/map" class="nav-link position-relative" routerLinkActive="active">
           <i class="bi bi-map fs-2"></i>
+          <span class="position-absolute start-100 translate-middle p-1 bg-success border border-light rounded-circle"
+            style="top: 15px" *ngIf="isConnected$ | async">
+            <span class="visually-hidden">Connected</span>
+          </span>
         </a>
       </li>
       <li class="nav-item" *ngIf="lastMfd$ | async as lastMfd" [ngbTooltip]="lastMfd.name" placement="right"
