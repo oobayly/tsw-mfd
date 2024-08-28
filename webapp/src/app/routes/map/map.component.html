@@ -1,11 +1,12 @@
-<div class="w-100 h-100" [style.--brightness]="brightness$ | async" *ngIf="options$ | async as options" leaflet
-  [leafletOptions]="options" [leafletLayersControl]="controls" (leafletMapReady)="onMapReady($event)"
-  (leafletMapMoveEnd)="onMapMove($event)">
+<div class="w-100 h-100" [ngClass]="{'follow-location': followLocation}" [style.--brightness]="brightness$ | async"
+  *ngIf="options$ | async as options" leaflet [leafletOptions]="options" [leafletLayersControl]="controls"
+  (leafletMapReady)="onMapReady($event)" (leafletMapMoveEnd)="onMapMove($event)"
+  (leafletMouseDown)="onMapMouseDown($event)">
 </div>
 
 <ng-template #locationButton>
   <div class="leaflet-bar">
-    <a href="#" class="leaflet-control-button" (click)="onLocationClick($event)">
+    <a href="#" class="leaflet-control-button leaflet-location-button" (click)="onLocationClick($event)">
       <i class="bi bi-crosshair fs-3"></i>
     </a>
   </div>

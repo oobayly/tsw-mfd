@@ -2,8 +2,16 @@ import { EventEmitter, Injectable } from "@angular/core";
 import { NgxIndexedDBService } from "ngx-indexed-db";
 import { catchError, filter, firstValueFrom, map, Observable, of, startWith, switchMap } from "rxjs";
 
+export interface MapSettings {
+  lat: number;
+  lng: number;
+  zoom: number;
+  layers: string[];
+  brightness: number;
+}
+
 interface SettingsMap {
-  map: { lat: number, lng: number, zoom: number, layers: string[], brightness: number },
+  map: MapSettings,
   websocket: { host: string, port: number },
 }
 

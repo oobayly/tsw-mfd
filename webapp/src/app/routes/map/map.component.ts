@@ -3,8 +3,8 @@ import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
-import { catchError, distinctUntilChanged, first, map, Observable, of, pairwise, shareReplay, Subject, Subscription, takeUntil, timeout } from "rxjs";
-import { SetttingsService } from "../../core/services/setttings.service";
+import { catchError, debounceTime, distinctUntilChanged, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
+import { MapSettings, SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
 
 @Component({
@@ -47,6 +47,8 @@ export class MapComponent implements OnDestroy {
     "None": tileLayer("", { id: "blank" }),
   }
 
+  public followLocation = false;
+
   private readonly overlays = {
     "Standard": tileLayer("https://tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Max Speed": tileLayer("https://tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
@@ -75,6 +77,8 @@ export class MapComponent implements OnDestroy {
   public readonly options$: Observable<MapOptions>;
 
   private readonly destroy$ = new Subject<void>();
+
+  private readonly updateSettings$ = new Subject<Partial<MapSettings>>();
 
   // ========================
   // View children
@@ -131,6 +135,12 @@ export class MapComponent implements OnDestroy {
       takeUntil(this.destroy$),
       shareReplay(1),
     );
+
+    // Only save settings every 5 seconds
+    this.subscriptions.push(this.updateSettings$.pipe(
+      debounceTime(5000),
+      switchMap((settings) => this.settings.patchSetting("map", settings)),
+    ).subscribe());
   }
 
   ngOnDestroy(): void {
@@ -146,7 +156,7 @@ export class MapComponent implements OnDestroy {
   // Methods
   // ========================
 
-  private async updateSettings(): Promise<void> {
+  private updateSettings(): void {
     if (!this.leaflet) {
       return;
     }
@@ -165,7 +175,7 @@ export class MapComponent implements OnDestroy {
       }
     });
 
-    await this.settings.patchSetting("map", {
+    this.updateSettings$.next({
       layers,
       lat, lng,
       zoom,
@@ -182,6 +192,8 @@ export class MapComponent implements OnDestroy {
 
   public async onLocationClick(e: Event): Promise<void> {
     e.preventDefault();
+
+    this.followLocation = true;
 
     try {
       (await this.socket.emit("latlng?"));
@@ -205,6 +217,10 @@ export class MapComponent implements OnDestroy {
 
   public onMapMove(_: LeafletEvent): void {
     void this.updateSettings();
+  }
+
+  public onMapMouseDown(_: LeafletEvent): void {
+    this.followLocation = false;
   }
 
   public onMapReady(e: Map): void {
@@ -238,22 +254,12 @@ export class MapComponent implements OnDestroy {
 
     // Listen for location changes
     this.subscriptions.push(this.location$.pipe(
-      pairwise(),
-    ).subscribe(([last, current]) => {
-      if (!this.leaflet) {
+    ).subscribe((current) => {
+      if (!this.leaflet || !this.followLocation) {
         return;
       }
 
-      // Precision is lost when zoomed out, so get the relative coordinates of the last position
-      const { x: x0, y: y0 } = this.leaflet.latLngToLayerPoint(last);
-      const { x: x1, y: y1 } = this.leaflet.latLngToLayerPoint(this.leaflet.getCenter());
-      const dx = Math.abs(x0 - x1);
-      const dy = Math.abs(y0 - y1);
-
-      // Only pan if the map hasn't been panned away by the user
-      if (dx < 10 && dy < 10) {
-        this.leaflet?.panTo(current);
-      }
+      this.leaflet?.panTo(current);
     }));
   }
 

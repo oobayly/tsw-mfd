@@ -8,3 +8,10 @@
   font-family: "SevenSeg";
   src: url(https://fonts.cdnfonts.com/s/111484/G7_Segment7_S5.woff);
 }
+
+.leaflet-control-button {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  color: rgba(0, 0, 0, 0.7);
+}

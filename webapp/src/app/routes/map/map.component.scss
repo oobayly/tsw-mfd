@@ -2,11 +2,14 @@
   filter: brightness(var(--brightness, 1));
 }
 
-.leaflet-control-button {
-  width: 44px !important;
-  height: 44px !important;
-  line-height: 44px !important;
-  color: rgba(0, 0, 0, 0.7);
+.leaflet-location-button {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.follow-location {
+  .leaflet-location-button {
+    color: rgba(0, 0, 0, 0.7);
+  }
 }
 
 ::ng-deep {
