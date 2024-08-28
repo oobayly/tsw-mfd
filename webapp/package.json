@@ -5,9 +5,11 @@
     "ng": "ng",
     "start": "ng serve --port 4210",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "copy-production": "shx mkdir -p ../firebase/public && shx rm -Rf ../firebase/public/* && shx cp -r dist/webapp/browser/* ../firebase/public/"
   },
   "private": true,
   "dependencies": {
@@ -46,6 +48,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "shx": "^0.3.4",
     "typescript": "~5.5.2",
     "typescript-eslint": "^8.2.0"
   }
