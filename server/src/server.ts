@@ -30,7 +30,7 @@ wss.on("connection", (ws, req) => {
   sendMessage(ws, "client_id", id);
 
   if (state.location) {
-    sendMessage(ws, "latlng", ...state.location);
+    sendLocation(ws, ...state.location);
   }
 
   ws.on("error", (e) => {
@@ -69,11 +69,15 @@ const handleMessage = (ws: WebSocket, id: string, data: RawData, isBinary: boole
   switch (event) {
     case "latlng?":
       if (state.location) {
-        sendMessage(ws, "latlng", ...state.location);
+        sendLocation(ws, ...state.location);
       }
   }
 
 }
+
+const sendLocation = (target: Server | WebSocket, lat: number, lng: number): void => {
+  sendMessage(target, "latlng", lat, lng);
+};
 
 const sendMessage = (target: Server | WebSocket, event: string, ...args: any[]): void => {
   const message = JSON.stringify([event, ...args]);
@@ -111,7 +115,7 @@ const simulateLatLng = () => {
 
   state.location = [lat, lng];
 
-  sendMessage(wss, "latlng", lat, lng);
+  sendLocation(wss, ...state.location);
 };
 
 const rl = readline.createInterface({ input: process.stdin });
@@ -128,7 +132,7 @@ const readCommands = async (): Promise<void> => {
 
       state.location = [lat, lng];
 
-      sendMessage(wss, "latlng", lat, lng);
+      sendLocation(wss, lat, lng);
     } else if (match = resp.match(/^latlng simulate( ([0-9]+))?/i)) {
       const speed = match[2] ? parseInt(match[2]) : 160;
 
