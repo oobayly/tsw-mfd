@@ -2,7 +2,7 @@ import readline from "readline/promises";
 import { format } from "util";
 import { v4 } from "uuid";
 import { RawData, Server, WebSocket, WebSocketServer } from "ws";
-import { result } from "./simulate";
+import { interpolateKolnAachen } from "./simulate";
 
 interface ServerState {
   location?: [number, number];
@@ -129,7 +129,9 @@ const readCommands = async (): Promise<void> => {
       state.location = [lat, lng];
 
       sendMessage(wss, "latlng", lat, lng);
-    } else if (match = resp.match(/^latlng simulate/i)) {
+    } else if (match = resp.match(/^latlng simulate( ([0-9]+))?/i)) {
+      const speed = match[2] ? parseInt(match[2]) : 160;
+
       if (state.simulate?.location?.timerId) {
         clearInterval(state.simulate.location.timerId);
         delete state.simulate.location;
@@ -140,7 +142,7 @@ const readCommands = async (): Promise<void> => {
       }
 
       state.simulate.location = {
-        points: result,
+        points: interpolateKolnAachen(speed),
         timerId: setInterval(simulateLatLng, 125),
       };
     } else if (resp === "clients") {
