@@ -2,10 +2,11 @@ import { CommonModule } from "@angular/common";
 import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
-import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, TileLayer, tileLayer } from "leaflet";
+import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
 import { catchError, debounceTime, distinctUntilChanged, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
 import { MapSettings, SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
+import { StationLayer } from "./leaflet/StationLayer";
 
 @Component({
   selector: "app-map",
@@ -55,6 +56,7 @@ export class MapComponent implements OnDestroy {
     "Signals": tileLayer("https://tiles.openrailwaymap.org/signals/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Electrification": tileLayer("https://tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Gauge": tileLayer("https://tiles.openrailwaymap.org/gauge/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
+    "Stations": new StationLayer(),
   } satisfies Record<string, Layer>;
 
   public readonly controls: LeafletControlLayersConfig = {
@@ -108,7 +110,7 @@ export class MapComponent implements OnDestroy {
     this.options$ = settings$.pipe(
       first(),
       map((settings) => {
-        let layers: TileLayer[];
+        let layers: Layer[];
 
         if (settings?.layers) {
           layers = Object.entries({ ...this.overlays, ...this.baseLayers })
