@@ -6,7 +6,6 @@ import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, 
 import { catchError, debounceTime, distinctUntilChanged, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
 import { MapSettings, SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
-import { StationLayer } from "./leaflet/StationLayer";
 
 @Component({
   selector: "app-map",
@@ -56,7 +55,6 @@ export class MapComponent implements OnDestroy {
     "Signals": tileLayer("https://tiles.openrailwaymap.org/signals/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Electrification": tileLayer("https://tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Gauge": tileLayer("https://tiles.openrailwaymap.org/gauge/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
-    "Stations": new StationLayer(),
   } satisfies Record<string, Layer>;
 
   public readonly controls: LeafletControlLayersConfig = {
