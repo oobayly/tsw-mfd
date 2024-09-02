@@ -1,0 +1,52 @@
+{
+  "version": 8,
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "http://localhost:8080/data/v3.json"
+    }
+  },
+  "layers": [
+    {
+      "id": "roads-speed",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": [
+        "in",
+        "subclass",
+        "rail",
+        "narrow_gauge",
+        "subway",
+        "light_rail",
+        "monorail",
+        "tram"
+      ],
+      "paint": {
+        "line-color": [
+          "step",
+          [
+            "to-number",
+            [
+              "get",
+              "maxspeed"
+            ],
+            0
+          ],
+          "#00000080",
+          0,
+          "#00FF00",
+          30,
+          "#00FF00",
+          31,
+          "#FFFF00",
+          60,
+          "#FFFF00",
+          61,
+          "#FF0000"
+        ],
+        "line-width": 2
+      }
+    }
+  ]
+}

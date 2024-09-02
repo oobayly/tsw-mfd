@@ -6,6 +6,7 @@ import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, 
 import { catchError, debounceTime, distinctUntilChanged, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
 import { MapSettings, SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
+import { maplibreLayer } from "./leaflet/LeafletMapLibreLayer";
 import { StationLayer } from "./leaflet/StationLayer";
 
 @Component({
@@ -57,6 +58,9 @@ export class MapComponent implements OnDestroy {
     "Electrification": tileLayer("https://tiles.openrailwaymap.org/electrification/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Gauge": tileLayer("https://tiles.openrailwaymap.org/gauge/{z}/{x}/{y}.png", { maxZoom: 18, attribution: this.attributions.orm }),
     "Stations": new StationLayer(),
+    // "MapTiler": new MaptilerLayer({ apiKey: "sxZv6MRF2Wy6KCIqF2Ld" }) as Layer,
+    // "Roads": maplibreLayer({ style: "/mapstyles/style-cdn.json" }),
+    "Roads": maplibreLayer({ style: "/mapstyles/roads-maxspeeds.json" }),
   } satisfies Record<string, Layer>;
 
   public readonly controls: LeafletControlLayersConfig = {
