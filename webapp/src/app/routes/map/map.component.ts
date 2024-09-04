@@ -3,7 +3,7 @@ import { Component, OnDestroy, TemplateRef, ViewChild } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { LeafletControlLayersConfig, LeafletModule } from "@asymmetrik/ngx-leaflet";
 import { Control, latLng, LatLngTuple, Layer, LayersControlEvent, LeafletEvent, Map, MapOptions, tileLayer } from "leaflet";
-import { catchError, debounceTime, distinctUntilChanged, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
+import { BehaviorSubject, catchError, debounceTime, distinctUntilChanged, filter, first, map, Observable, of, shareReplay, Subject, Subscription, switchMap, takeUntil, timeout } from "rxjs";
 import { MapSettings, SetttingsService } from "../../core/services/setttings.service";
 import { TswSocketService } from "../../core/services/tsw-socket.service";
 
@@ -78,7 +78,7 @@ export class MapComponent implements OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  private readonly updateSettings$ = new Subject<Partial<MapSettings>>();
+  private readonly updateSettings$ = new BehaviorSubject<Partial<MapSettings> | undefined>(undefined);
 
   // ========================
   // View children
@@ -138,18 +138,26 @@ export class MapComponent implements OnDestroy {
 
     // Only save settings every 5 seconds
     this.subscriptions.push(this.updateSettings$.pipe(
+      filter((x) => !!x),
       debounceTime(5000),
       switchMap((settings) => this.settings.patchSetting("map", settings)),
     ).subscribe());
   }
 
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
     this.destroy$.next();
     this.subscriptions.forEach((s) => s.unsubscribe());
 
     this.leaflet?.removeEventListener("overlayadd", this.onOverlayAdd);
     this.leaflet?.removeEventListener("overlayremove", this.onOverlayRemove);
     this.leaflet?.removeEventListener("baselayerchange", this.onBaseLayerChange);
+
+    // Ensure the current settings (if available) are saved
+    const settings = this.updateSettings$.value;
+
+    if (settings) {
+      await this.settings.patchSetting("map", settings);
+    }
   }
 
   // ========================
